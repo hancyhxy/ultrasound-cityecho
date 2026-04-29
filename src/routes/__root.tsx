@@ -37,6 +37,10 @@ export const Route = createRootRoute({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Ultrasound — the city, listening with you" },
+      { name: "twitter:description", content: "Ambient, location-based music for newcomers. Hear what people here are listening to." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2d34a174-e7d3-423c-a241-54f96ed6f5a1/id-preview-36a262f2--fd09231e-bf94-4350-8ec2-6dae7f8bc22e.lovable.app-1777429562327.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2d34a174-e7d3-423c-a241-54f96ed6f5a1/id-preview-36a262f2--fd09231e-bf94-4350-8ec2-6dae7f8bc22e.lovable.app-1777429562327.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
