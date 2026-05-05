@@ -166,7 +166,7 @@ Each candidate is a possible storytelling unit. Format: **headline · what it te
 
 ---
 
-### ITER-6 · 2026-05-06 (planned, not yet shipped) · Wire the trace-publishing flow end-to-end
+### ITER-6 · 2026-05-06 · Wire the trace-publishing flow end-to-end
 
 | Field | Content |
 |---|---|
@@ -183,7 +183,7 @@ Each candidate is a possible storytelling unit. Format: **headline · what it te
 | ↳ **Completion moment** | After submit on either entry, a tiny toast at the top of the phone shell: *"pinned at {place} · {time}"* in Fraunces italic, 2 seconds, dismisses itself. No success animation; no confetti. The act is quiet, like the rest of the product. |
 | ↳ **Made-by-you visibility** | After ITER-6 ships, `MY_TRACES` (the seed array used by `/me`) is **augmented at runtime** by user-written traces from storage: `getMyFirstTrace()`, `getMyHomePlace()`, etc. all start reading from `[...MY_TRACES, ...getUserTraces()]`. ITER-4's hand-authored fixture remains as floor data so the page is never empty for a fresh user. |
 | **Out of scope** | (1) Visual restyle per `design.md` — explicitly deferred to ITER-7 to avoid double-work; ITER-6 builds on the current amber/violet system, ITER-7 then re-skins the publish flow alongside everything else. (2) Editing or deleting an already-published user trace — the current product premise is *"one honest thing pinned and left behind"*; an "edit" affordance would damage the voice. We accept the cost (typo lives forever); if it bites in user testing, ITER-9+ revisits. (3) Sharing the trace outside the app. The product is purposefully not a broadcast surface. |
-| **Outcome** | TBD — when ITER-6 ships. |
+| **Outcome** | Shipped 2026-05-06. HMR walkthrough on `localhost:8080/traces`: the user's avatar `L` (in the same warm-to-primary gradient as `/me`'s identity) now sits at the head of the story-bubble row with a `Plus` badge in its bottom-right and a soft *"your turn"* caption — Instagram-grammar applied without copying its product. Tapping the self-bubble opens a 4-field bottom sheet (place picker · song · artist · note · mood) styled identically to `UserStoryModal`. Submit calls `saveUserTrace`, the sheet closes, a Fraunces-italic toast *"pinned at {place} · just now"* fades in at the top of the phone for 1.8s, the new trace appears at the head of the feed below (and survives a browser refresh via localStorage). The user has now also written a working entry through `/playing`'s "Leave a trace" button — same toast, same persistence. The read ↔ write asymmetry called out in the pain point is resolved at v1; the chorus loop is closed. |
 | **Trade-offs** | (1) **Two new entry points means the modal becomes a portable component**, not a private child of `playing.tsx`. The component lifts to `src/components/TraceModal.tsx`, parameterised on `prefilledSong?` and `prefilledLocationId?`. Mild refactor cost; pays off again at ITER-7. (2) **Storage is purely client-side localStorage** — refresh wipes nothing, but the user's traces never reach another device. Acceptable for a design-experience deliverable. Real product would need a backend; that is not what this codebase is. (3) **No moderation, no profanity filter, no rate limit.** Single-user demo product. Documented so that a real-world reviewer of the deliverable can see we considered and de-scoped it. |
 | **Commit / PR** | TBD |
 

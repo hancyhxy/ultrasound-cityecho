@@ -1,3 +1,5 @@
+import { getUserTraces, isBrowser, type UserTrace } from "./storage";
+
 export type Song = { song: string; artist: string };
 
 export type Pin = {
@@ -443,15 +445,91 @@ export const MY_TRACES: MyTrace[] = [
   },
 ];
 
+/* ─────────────────────────────────────────────────
+   Adapters: bridge UserTrace (storage) ↔ MyTrace / Trace (UI consumers)
+   so user-written traces participate in the same narratives as fixtures.
+   ───────────────────────────────────────────────── */
+
+/** Sydney mapping (must match currentSeason() below). */
+function seasonOf(date: Date): Season {
+  const m = date.getMonth();
+  if (m === 11 || m === 0 || m === 1) return "summer";
+  if (m >= 2 && m <= 4) return "autumn";
+  if (m >= 5 && m <= 7) return "winter";
+  return "spring";
+}
+
+/** Convert a localStorage user trace into the MyTrace shape consumed by /me. */
+export function userTraceToMyTrace(ut: UserTrace, indexAfterFixtures: number): MyTrace {
+  const d = new Date(ut.createdAt);
+  return {
+    id: ut.id,
+    song: ut.song,
+    artist: ut.artist,
+    place: ut.place,
+    locationId: ut.locationId,
+    note: ut.note,
+    mood: ut.mood,
+    season: seasonOf(d),
+    when: relativeTime(ut.createdAt),
+    // User traces always come AFTER hand-authored fixtures in narrative order.
+    order: 100 + indexAfterFixtures,
+  };
+}
+
+/** Convert a UserTrace into the Trace shape consumed by /traces feed and danmaku. */
+export function userTraceToTrace(ut: UserTrace): Trace {
+  return {
+    id: ut.id,
+    userId: "self",
+    userInitial: "L",
+    userColor: "#F5C26B", // amber — distinct from stranger palette
+    song: ut.song,
+    artist: ut.artist,
+    place: ut.place,
+    locationId: ut.locationId,
+    note: ut.note,
+    mood: ut.mood,
+    time: relativeTime(ut.createdAt),
+    forSong: ut.forSong,
+  };
+}
+
+/** Tiny relative-time formatter. "just now" / "5m" / "2h" / "3d". */
+export function relativeTime(ts: number, now: number = Date.now()): string {
+  const diff = Math.max(0, now - ts);
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d}d`;
+  return `${Math.floor(d / 7)}w`;
+}
+
+/**
+ * Combined source of truth for "my" traces — fixtures floor + user-written.
+ * SSR-safe: on the server, localStorage is unavailable so only fixtures are
+ * returned; client-side hydration adds user traces. Consumers that need to
+ * react to writes should depend on a state changed at write-time (e.g. the
+ * pinnedTrace flag), not call this in render unconditionally.
+ */
+function allMyTraces(): MyTrace[] {
+  if (!isBrowser()) return MY_TRACES;
+  const userMine = getUserTraces().map((ut, i) => userTraceToMyTrace(ut, i));
+  return [...MY_TRACES, ...userMine];
+}
+
 /** First trace by hand-annotated order. */
 export function getMyFirstTrace(): MyTrace | undefined {
-  return [...MY_TRACES].sort((a, b) => a.order - b.order)[0];
+  return [...allMyTraces()].sort((a, b) => a.order - b.order)[0];
 }
 
 /** Place where the user has left the most traces (with at least one). */
 export function getMyHomePlace(): { pin: Pin; tracesCount: number } | undefined {
   const counts = new Map<string, number>();
-  for (const t of MY_TRACES) {
+  for (const t of allMyTraces()) {
     if (!t.locationId) continue;
     counts.set(t.locationId, (counts.get(t.locationId) ?? 0) + 1);
   }
@@ -489,7 +567,7 @@ export function getStrangerTimeOverlap():
   return undefined;
 }
 
-/** Group user traces by season. */
+/** Group user traces by season (fixtures + user-written merged). */
 export function getMyTracesBySeason(): Record<Season, MyTrace[]> {
   const out: Record<Season, MyTrace[]> = {
     spring: [],
@@ -497,7 +575,7 @@ export function getMyTracesBySeason(): Record<Season, MyTrace[]> {
     autumn: [],
     winter: [],
   };
-  for (const t of MY_TRACES) {
+  for (const t of allMyTraces()) {
     out[t.season].push(t);
   }
   return out;

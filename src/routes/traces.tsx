@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MapPin, X, Play } from "lucide-react";
+import { MapPin, X, Play, Plus } from "lucide-react";
 import { z } from "zod";
 import { PhoneShell } from "@/components/PhoneShell";
-import { FEED, type Trace } from "@/lib/seed-data";
+import { PinnedToast } from "@/components/PinnedToast";
+import { FEED, PINS, userTraceToTrace, type Trace } from "@/lib/seed-data";
+import { getUserTraces, saveUserTrace, type UserTrace } from "@/lib/storage";
 
 const tracesSearchSchema = z.object({
   highlight: z.string().optional(),
@@ -20,13 +22,16 @@ export const Route = createFileRoute("/traces")({
   component: TracesScreen,
 });
 
-type StoryUser = {
+type StoryStranger = {
+  kind: "stranger";
   id: string;
   initial: string;
   color: string;
   hasNew: boolean;
   traces: Trace[];
 };
+
+type StoryItem = { kind: "self" } | StoryStranger;
 
 function TracesScreen() {
   const { highlight } = Route.useSearch();
@@ -38,8 +43,22 @@ function TracesScreen() {
     }
   }, [highlight]);
 
-  const storyUsers = useMemo<StoryUser[]>(() => {
-    const grouped = new Map<string, StoryUser>();
+  const [pinnedTrace, setPinnedTrace] = useState<UserTrace | null>(null);
+  const [composerOpen, setComposerOpen] = useState(false);
+
+  const myTracesAsTrace = useMemo(
+    () => getUserTraces().map(userTraceToTrace),
+    // re-read after a new pin lands so feed/stories pick it up immediately
+    [pinnedTrace],
+  );
+
+  const feedToRender: Trace[] = useMemo(
+    () => [...myTracesAsTrace, ...FEED],
+    [myTracesAsTrace],
+  );
+
+  const storyItems = useMemo<StoryItem[]>(() => {
+    const grouped = new Map<string, StoryStranger>();
     for (const t of FEED) {
       const existing = grouped.get(t.userId);
       if (existing) {
@@ -47,6 +66,7 @@ function TracesScreen() {
         if (t.unread) existing.hasNew = true;
       } else {
         grouped.set(t.userId, {
+          kind: "stranger",
           id: t.userId,
           initial: t.userInitial,
           color: t.userColor,
@@ -55,11 +75,14 @@ function TracesScreen() {
         });
       }
     }
-    return Array.from(grouped.values());
+    return [{ kind: "self" }, ...Array.from(grouped.values())];
   }, []);
 
   const [openUserId, setOpenUserId] = useState<string | null>(null);
-  const openUser = storyUsers.find((u) => u.id === openUserId) ?? null;
+  const openUser =
+    storyItems
+      .filter((s): s is StoryStranger => s.kind === "stranger")
+      .find((u) => u.id === openUserId) ?? null;
 
   return (
     <PhoneShell>
@@ -70,36 +93,55 @@ function TracesScreen() {
         </h1>
       </header>
 
-      {/* IG-style story bubbles */}
+      {/* IG-style story bubbles — self pinned at the head of the row */}
       <div className="mt-5 px-5">
         <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 -mx-1 px-1">
-          {storyUsers.map((u) => (
-            <button
-              key={u.id}
-              onClick={() => setOpenUserId(u.id)}
-              className="shrink-0 flex flex-col items-center gap-1.5 group"
-              aria-label={`See traces from ${u.initial}`}
-            >
-              <span
-                className={`relative h-16 w-16 rounded-full grid place-items-center transition-transform group-hover:scale-105 ${
-                  u.hasNew ? "p-[2px] bg-gradient-to-tr from-warm via-primary to-warm" : "p-[2px] bg-white/10"
-                }`}
+          {storyItems.map((s, i) =>
+            s.kind === "self" ? (
+              <button
+                key="self"
+                onClick={() => setComposerOpen(true)}
+                className="shrink-0 flex flex-col items-center gap-1.5 group"
+                aria-label="Pin a new trace"
+              >
+                <span className="relative h-16 w-16 rounded-full grid place-items-center transition-transform group-hover:scale-105 p-[2px] bg-white/10">
+                  <span className="h-full w-full rounded-full grid place-items-center font-display text-[20px] bg-gradient-to-br from-warm to-primary text-warm-foreground border-2 border-background">
+                    L
+                  </span>
+                  <span className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-warm border-2 border-background grid place-items-center">
+                    <Plus className="h-3 w-3 text-warm-foreground" strokeWidth={2.8} />
+                  </span>
+                </span>
+                <span className="text-[10px] font-mono italic text-warm/90">your turn</span>
+              </button>
+            ) : (
+              <button
+                key={s.id}
+                onClick={() => setOpenUserId(s.id)}
+                className="shrink-0 flex flex-col items-center gap-1.5 group"
+                aria-label={`See traces from ${s.initial}`}
               >
                 <span
-                  className="h-full w-full rounded-full grid place-items-center font-display text-[20px] text-background border-2 border-background"
-                  style={{ background: u.color }}
+                  className={`relative h-16 w-16 rounded-full grid place-items-center transition-transform group-hover:scale-105 ${
+                    s.hasNew ? "p-[2px] bg-gradient-to-tr from-warm via-primary to-warm" : "p-[2px] bg-white/10"
+                  }`}
                 >
-                  {u.initial}
+                  <span
+                    className="h-full w-full rounded-full grid place-items-center font-display text-[20px] text-background border-2 border-background"
+                    style={{ background: s.color }}
+                  >
+                    {s.initial}
+                  </span>
+                  {s.hasNew && (
+                    <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-warm border-2 border-background" />
+                  )}
                 </span>
-                {u.hasNew && (
-                  <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-warm border-2 border-background" />
-                )}
-              </span>
-              <span className="text-[10px] font-mono text-muted-foreground">
-                {u.traces[0].time}
-              </span>
-            </button>
-          ))}
+                <span className="text-[10px] font-mono text-muted-foreground">
+                  {s.traces[0].time}
+                </span>
+              </button>
+            ),
+          )}
         </div>
       </div>
 
@@ -108,7 +150,7 @@ function TracesScreen() {
         <p className="px-1 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
           Today, in the city
         </p>
-        {FEED.map((t) => (
+        {feedToRender.map((t) => (
           <article
             key={t.id}
             ref={(el) => {
@@ -173,6 +215,13 @@ function TracesScreen() {
       {openUser && (
         <UserStoryModal user={openUser} onClose={() => setOpenUserId(null)} />
       )}
+      {composerOpen && (
+        <TracesComposer
+          onSubmitted={(t) => setPinnedTrace(t)}
+          onClose={() => setComposerOpen(false)}
+        />
+      )}
+      <PinnedToast trace={pinnedTrace} onDismiss={() => setPinnedTrace(null)} />
     </PhoneShell>
   );
 }
@@ -247,6 +296,189 @@ function UserStoryModal({ user, onClose }: { user: StoryUser; onClose: () => voi
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+const COMPOSER_MOODS = ["calm", "lonely", "hopeful", "alive", "soft", "homesick"];
+
+function TracesComposer({
+  onSubmitted,
+  onClose,
+}: {
+  onSubmitted: (t: UserTrace) => void;
+  onClose: () => void;
+}) {
+  // Default place — pick the user's home pin if any user-traces exist; else Wynyard.
+  const defaultPinId = useMemo(() => {
+    const traces = getUserTraces();
+    if (traces.length === 0) return "wynyard";
+    const counts = new Map<string, number>();
+    for (const t of traces) {
+      if (!t.locationId) continue;
+      counts.set(t.locationId, (counts.get(t.locationId) ?? 0) + 1);
+    }
+    let topId = "wynyard";
+    let topN = 0;
+    for (const [id, n] of counts) {
+      if (n > topN) {
+        topId = id;
+        topN = n;
+      }
+    }
+    return topId;
+  }, []);
+
+  const [pinId, setPinId] = useState<string>(defaultPinId);
+  const [song, setSong] = useState("");
+  const [artist, setArtist] = useState("");
+  const [note, setNote] = useState("");
+  const [mood, setMood] = useState<string | null>(null);
+  const [hint, setHint] = useState<string | null>(null);
+
+  const selectedPin = PINS.find((p) => p.id === pinId);
+
+  function handleSubmit() {
+    const trimmedSong = song.trim();
+    const trimmedArtist = artist.trim();
+    const trimmedNote = note.trim();
+    if (!trimmedSong || !trimmedArtist) {
+      setHint("which song held you?");
+      return;
+    }
+    if (!trimmedNote) {
+      setHint("write one honest thing");
+      return;
+    }
+    if (!mood) {
+      setHint("choose a mood");
+      return;
+    }
+    if (!selectedPin) {
+      setHint("pick a place");
+      return;
+    }
+    const t = saveUserTrace({
+      song: trimmedSong,
+      artist: trimmedArtist,
+      place: selectedPin.label,
+      locationId: selectedPin.id,
+      note: trimmedNote,
+      mood,
+      forSong: { song: trimmedSong, artist: trimmedArtist },
+    });
+    onSubmitted(t);
+    onClose();
+  }
+
+  return (
+    <div className="absolute inset-0 z-50 flex items-end" onClick={onClose}>
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-md" />
+      <div
+        className="relative w-full glass-strong rounded-t-[28px] p-6 pb-8 border-t border-white/10 animate-in slide-in-from-bottom duration-300 max-h-[88%] overflow-y-auto scrollbar-none"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mx-auto h-1 w-10 rounded-full bg-white/20 mb-4" />
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="font-display text-[22px] leading-tight">Pin a trace.</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              One song, one place, one honest sentence.
+            </p>
+          </div>
+          <button onClick={onClose} aria-label="Close" className="h-8 w-8 grid place-items-center rounded-full bg-white/5">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Where */}
+        <p className="mt-5 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">Where</p>
+        <div className="flex flex-wrap gap-2">
+          {PINS.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => {
+                setPinId(p.id);
+                if (hint) setHint(null);
+              }}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                p.id === pinId ? "bg-warm text-warm-foreground" : "bg-white/5 text-foreground/70 hover:bg-white/10"
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+
+        {/* What song */}
+        <p className="mt-5 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">What song held you</p>
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            value={song}
+            onChange={(e) => {
+              setSong(e.target.value);
+              if (hint) setHint(null);
+            }}
+            placeholder="song"
+            maxLength={80}
+            className="rounded-2xl bg-background/50 border border-white/10 px-4 py-3 text-[14px] focus:outline-none focus:border-warm/40 placeholder:text-muted-foreground/60"
+          />
+          <input
+            value={artist}
+            onChange={(e) => {
+              setArtist(e.target.value);
+              if (hint) setHint(null);
+            }}
+            placeholder="artist"
+            maxLength={60}
+            className="rounded-2xl bg-background/50 border border-white/10 px-4 py-3 text-[14px] focus:outline-none focus:border-warm/40 placeholder:text-muted-foreground/60"
+          />
+        </div>
+
+        {/* Note */}
+        <p className="mt-5 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">What did it hold for you</p>
+        <textarea
+          value={note}
+          onChange={(e) => {
+            setNote(e.target.value);
+            if (hint) setHint(null);
+          }}
+          placeholder="A stranger in this seat tomorrow will read it."
+          maxLength={140}
+          className="w-full h-24 rounded-2xl bg-background/50 border border-white/10 p-4 text-[14px] resize-none focus:outline-none focus:border-warm/40 placeholder:text-muted-foreground/60"
+        />
+        <div className="mt-1 text-[10px] font-mono text-muted-foreground text-right">{note.length}/140</div>
+
+        {/* Mood */}
+        <p className="mt-4 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">Mood</p>
+        <div className="flex flex-wrap gap-2">
+          {COMPOSER_MOODS.map((m) => (
+            <button
+              key={m}
+              onClick={() => {
+                setMood(m);
+                if (hint) setHint(null);
+              }}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                mood === m ? "bg-warm text-warm-foreground" : "bg-white/5 text-foreground/70 hover:bg-white/10"
+              }`}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+
+        {hint && (
+          <p className="mt-3 text-[11px] font-mono italic text-warm/80">{hint}</p>
+        )}
+
+        <button
+          onClick={handleSubmit}
+          className="mt-6 w-full h-12 rounded-2xl bg-warm text-warm-foreground font-medium hover:opacity-90 transition-opacity shadow-warm"
+        >
+          Pin to {selectedPin?.label ?? "this place"}
+        </button>
       </div>
     </div>
   );

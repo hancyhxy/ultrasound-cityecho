@@ -7,7 +7,9 @@ import { Equalizer } from "@/components/Equalizer";
 import { FlipToggle, type CollageView } from "@/components/FlipToggle";
 import { CollageBoard } from "@/components/CollageBoard";
 import { DanmakuOverlay } from "@/components/DanmakuOverlay";
+import { PinnedToast } from "@/components/PinnedToast";
 import { findTracesForSong, PINS } from "@/lib/seed-data";
+import { saveUserTrace, type UserTrace } from "@/lib/storage";
 
 const playingSearchSchema = z.object({
   song: z.string().optional(),
@@ -44,6 +46,7 @@ function PlayingScreen() {
   const [view, setView] = useState<CollageView>("track");
   const [isFlipping, setIsFlipping] = useState(false);
   const [showTraceModal, setShowTraceModal] = useState(false);
+  const [pinnedTrace, setPinnedTrace] = useState<UserTrace | null>(null);
 
   const traces = useMemo(
     () => findTracesForSong(song, artist, locId),
@@ -89,7 +92,17 @@ function PlayingScreen() {
         )}
       </div>
 
-      {showTraceModal && <TraceModal onClose={() => setShowTraceModal(false)} />}
+      {showTraceModal && (
+        <TraceModal
+          song={song}
+          artist={artist}
+          place={location.label}
+          locationId={location.id}
+          onSubmitted={(t) => setPinnedTrace(t)}
+          onClose={() => setShowTraceModal(false)}
+        />
+      )}
+      <PinnedToast trace={pinnedTrace} onDismiss={() => setPinnedTrace(null)} />
     </PhoneShell>
   );
 }
@@ -285,9 +298,47 @@ function StoryFace({
   );
 }
 
-function TraceModal({ onClose }: { onClose: () => void }) {
+function TraceModal({
+  song,
+  artist,
+  place,
+  locationId,
+  onSubmitted,
+  onClose,
+}: {
+  song: string;
+  artist: string;
+  place: string;
+  locationId?: string;
+  onSubmitted: (t: UserTrace) => void;
+  onClose: () => void;
+}) {
   const [selected, setSelected] = useState<string | null>(null);
   const [text, setText] = useState("");
+  const [hint, setHint] = useState<string | null>(null);
+
+  function handleSubmit() {
+    const trimmed = text.trim();
+    if (!trimmed) {
+      setHint("write one honest thing first");
+      return;
+    }
+    if (!selected) {
+      setHint("choose a mood");
+      return;
+    }
+    const t = saveUserTrace({
+      song,
+      artist,
+      place,
+      locationId,
+      note: trimmed,
+      mood: selected,
+      forSong: { song, artist },
+    });
+    onSubmitted(t);
+    onClose();
+  }
 
   return (
     <div className="absolute inset-0 z-50 flex items-end" onClick={onClose}>
@@ -309,7 +360,10 @@ function TraceModal({ onClose }: { onClose: () => void }) {
 
         <textarea
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            if (hint) setHint(null);
+          }}
           placeholder="What did this song hold for you, here?"
           maxLength={140}
           className="mt-5 w-full h-24 rounded-2xl bg-background/50 border border-white/10 p-4 text-[14px] resize-none focus:outline-none focus:border-warm/40 placeholder:text-muted-foreground/60"
@@ -321,7 +375,10 @@ function TraceModal({ onClose }: { onClose: () => void }) {
           {MOODS.map((m) => (
             <button
               key={m}
-              onClick={() => setSelected(m)}
+              onClick={() => {
+                setSelected(m);
+                if (hint) setHint(null);
+              }}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                 selected === m ? "bg-warm text-warm-foreground" : "bg-white/5 text-foreground/70 hover:bg-white/10"
               }`}
@@ -331,8 +388,12 @@ function TraceModal({ onClose }: { onClose: () => void }) {
           ))}
         </div>
 
+        {hint && (
+          <p className="mt-3 text-[11px] font-mono italic text-warm/80">{hint}</p>
+        )}
+
         <button
-          onClick={onClose}
+          onClick={handleSubmit}
           className="mt-6 w-full h-12 rounded-2xl bg-warm text-warm-foreground font-medium hover:opacity-90 transition-opacity shadow-warm"
         >
           Pin to this place
