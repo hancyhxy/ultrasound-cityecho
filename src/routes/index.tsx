@@ -1,12 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Search, Layers, Play, Users, Plus, Heart } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { z } from "zod";
 import { PhoneShell } from "@/components/PhoneShell";
 import { Equalizer } from "@/components/Equalizer";
 import { LocationDrawer } from "@/components/LocationDrawer";
 import { PINS } from "@/lib/seed-data";
 
+const indexSearchSchema = z.object({
+  pin: z.string().optional(),
+});
+
 export const Route = createFileRoute("/")({
+  validateSearch: indexSearchSchema,
   head: () => ({
     meta: [
       { title: "Music Map — Ultrasound" },
@@ -19,8 +25,13 @@ export const Route = createFileRoute("/")({
 const YOU_ID = "uts";
 
 function MapScreen() {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { pin } = Route.useSearch();
+  const [selectedId, setSelectedId] = useState<string | null>(pin ?? null);
   const selected = PINS.find((p) => p.id === selectedId) ?? null;
+
+  useEffect(() => {
+    if (pin) setSelectedId(pin);
+  }, [pin]);
 
   return (
     <PhoneShell>

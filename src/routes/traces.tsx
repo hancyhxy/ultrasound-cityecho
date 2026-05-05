@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MapPin, X } from "lucide-react";
+import { MapPin, X, Play } from "lucide-react";
 import { z } from "zod";
 import { PhoneShell } from "@/components/PhoneShell";
 import { FEED, type Trace } from "@/lib/seed-data";
@@ -132,12 +132,34 @@ function TracesScreen() {
                   <span className="italic">"{t.note}"</span>
                 </p>
                 <div className="mt-1 flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
-                  <MapPin className="h-2.5 w-2.5 text-warm" />
-                  <span className="truncate">{t.place}</span>
+                  {t.locationId ? (
+                    <Link
+                      to="/"
+                      search={{ pin: t.locationId }}
+                      className="flex items-center gap-1 truncate hover:text-warm transition-colors"
+                      aria-label={`Open map at ${t.place}`}
+                    >
+                      <MapPin className="h-2.5 w-2.5 text-warm" />
+                      <span className="truncate">{t.place}</span>
+                    </Link>
+                  ) : (
+                    <span className="flex items-center gap-1 truncate">
+                      <MapPin className="h-2.5 w-2.5 text-warm" />
+                      <span className="truncate">{t.place}</span>
+                    </span>
+                  )}
                   <span>·</span>
-                  <span className="truncate">
-                    {t.song} — {t.artist}
-                  </span>
+                  <Link
+                    to="/playing"
+                    search={{ song: t.forSong.song, artist: t.forSong.artist, loc: t.locationId }}
+                    className="group/song flex items-center gap-1 truncate hover:text-warm transition-colors"
+                    aria-label={`Play ${t.forSong.song} by ${t.forSong.artist}`}
+                  >
+                    <Play className="h-2.5 w-2.5 text-warm shrink-0 opacity-70 group-hover/song:opacity-100" fill="currentColor" />
+                    <span className="truncate">
+                      {t.forSong.song} — {t.forSong.artist}
+                    </span>
+                  </Link>
                 </div>
               </div>
               <span className="shrink-0 text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-warm/15 text-warm border border-warm/20">
@@ -184,19 +206,41 @@ function UserStoryModal({ user, onClose }: { user: StoryUser; onClose: () => voi
           {user.traces.map((t) => (
             <div key={t.id} className="rounded-2xl p-4 bg-background/40 border border-white/5">
               <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="h-3 w-3 text-warm" />
-                  <span>{t.place}</span>
-                </div>
+                {t.locationId ? (
+                  <Link
+                    to="/"
+                    search={{ pin: t.locationId }}
+                    className="flex items-center gap-1.5 hover:text-warm transition-colors"
+                    aria-label={`Open map at ${t.place}`}
+                  >
+                    <MapPin className="h-3 w-3 text-warm" />
+                    <span>{t.place}</span>
+                  </Link>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="h-3 w-3 text-warm" />
+                    <span>{t.place}</span>
+                  </div>
+                )}
                 <span>{t.time}</span>
               </div>
               <p className="mt-2 text-[14px] leading-relaxed italic text-foreground/95">"{t.note}"</p>
-              <div className="mt-3 flex items-center justify-between">
-                <div className="min-w-0">
-                  <p className="text-[13px] font-medium truncate">{t.song}</p>
-                  <p className="text-[11px] text-muted-foreground truncate">{t.artist}</p>
-                </div>
-                <span className="shrink-0 ml-3 text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-warm/15 text-warm border border-warm/20">
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <Link
+                  to="/playing"
+                  search={{ song: t.forSong.song, artist: t.forSong.artist, loc: t.locationId }}
+                  className="group/song min-w-0 flex items-center gap-2 rounded-xl -mx-1.5 px-1.5 py-1 hover:bg-warm/10 transition-colors"
+                  aria-label={`Play ${t.forSong.song} by ${t.forSong.artist}`}
+                >
+                  <span className="shrink-0 h-7 w-7 rounded-full grid place-items-center bg-warm/15 border border-warm/30 group-hover/song:bg-warm group-hover/song:border-warm transition-colors">
+                    <Play className="h-3 w-3 text-warm group-hover/song:text-warm-foreground" fill="currentColor" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-medium truncate">{t.forSong.song}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{t.forSong.artist}</p>
+                  </div>
+                </Link>
+                <span className="shrink-0 text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-warm/15 text-warm border border-warm/20">
                   {t.mood}
                 </span>
               </div>

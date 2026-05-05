@@ -84,6 +84,42 @@ We keep the 0–4 numeric scale because graders recognise it, but redefine the l
 
 ---
 
+### ITER-2 · 2026-05-06 · Make song + place on a trace tappable, routing into the shared playing room
+
+| Field | Content |
+|---|---|
+| **Pain point** | When a user opens a stranger's trace (either in the feed on `/traces` or inside the story modal), the song line — *"Cha Cha — Freddie Dredd"* — and the place tag — *"FITNESS FIRST BROADWAY"* — are displayed as **plain text**. There is no visual affordance saying "you can step into this." Reading a stranger's trace becomes a dead-end act of consumption: *I see what they felt, and now what?* The product's core mechanic — *being with strangers through the same song in the same place* — is one tap away but not invited. |
+| **Source of insight** | Own playtest, 2026-05-06. Opened `/traces`, tapped the green `A` story bubble, read Ash's gym trace. Wanted to hear what they were hearing. Couldn't. The whole product collapses on this missing tap. |
+| **Severity** | **3 — Major friction.** Not catastrophic (you can still navigate manually to `/playing?song=…&artist=…`), but the core feedback loop the product is designed around — read a trace → step into the song → see other strangers' traces drift over you on `/playing` via the danmaku overlay — is gated behind URL-bar typing. The mechanic exists in the code but is **invisible to the user**. |
+| **Dimension(s) affected** | Companionship in solitude · Discoverability of presence · Intimacy with strangers |
+| **Hypothesis** | If we make the song row a tappable `<Link>` that routes to `/playing?song={forSong.song}&artist={forSong.artist}&loc={locationId}`, the trace becomes a **portal** rather than a postcard. Reading a stranger's note will pull you into the room they were in (same song, same place if known), where `findTracesForSong()` will surface them and other strangers as danmaku — closing the loop *read → enter → be-with*. We use `forSong` (not `song`) because the overlay aggregates strangers by which song their note was written *for*, which is the unit of shared experience. The place tag gets the same treatment, routing to `/?pin={locationId}` (place-as-portal). |
+| **Change made** | *(In progress as of this entry.)* (1) Wrap the song+artist + mood pill block on the trace cards with a `<Link>` to `/playing` carrying `forSong` and `locationId`. (2) Wrap the place row (`MapPin` + place name) with a `<Link>` to `/` carrying the pin id. (3) Apply both treatments **consistently** to both render sites — the small feed card on `traces.tsx:111-148` and the large story-modal card on `traces.tsx:184-204`. (4) Add a subtle hover/active state (border-warm-on-hover already there for the outer card, add a small chevron + `transition-colors` on the song row to teach the affordance without shouting). |
+| **Outcome** | Shipped 2026-05-06. HMR walkthrough: tapping a song row on either render site routes to `/playing?song=…&artist=…&loc=…`, which correctly drives `findTracesForSong()` so the danmaku surfaces other strangers' notes for the same song. Tapping the place row routes to `/?pin=…` and auto-opens the LocationDrawer for that pin (see ITER-3 below — solved in the same patch). |
+| **Trade-offs** | (1) Trace cards now have **nested interactive regions** (outer `<article>` is currently passive; inner song link + place link are clickable). We must avoid putting the whole article into a `<Link>` too — nested links break the a11y contract. We keep the article passive; only the meta rows are tappable. (2) The mood pill stays outside the song link's hit area (visual proximity but separate hit target). (3) On the small feed card we use a tiny `Play` icon as the affordance hint; on the modal's larger card we use a circular play button — the affordance scales with the card. |
+| **Commit / PR** | TBD |
+
+---
+
+### ITER-3 · 2026-05-06 · Place link should auto-open the LocationDrawer (folded into ITER-2)
+
+| Field | Content |
+|---|---|
+| **Pain point** | Anticipated as a follow-up of ITER-2: routing to `/?pin=broadway` lands on the map screen but does **not** auto-open the `LocationDrawer` — the user has to find the right pin and tap it again. The portal half-works. |
+| **Source of insight** | Self-spotted while implementing ITER-2. ITER-2's trade-off note explicitly logged this as a known gap. |
+| **Severity** | **2 — Minor friction.** Recoverable in seconds, but breaks the "trace as portal" promise mid-step. |
+| **Dimension(s) affected** | Discoverability of presence · Sense of place |
+| **Hypothesis** | Adding a `pin` query param (zod schema) to `index.tsx` and seeding `selectedId` from it will let the existing `LocationDrawer` open automatically with the right context — costing ~5 lines, less than the cost of writing the deferral note in ITER-2 itself. |
+| **Change made** | `routes/index.tsx`: add `validateSearch` with `z.object({ pin: z.string().optional() })`, read `pin` via `Route.useSearch()`, seed `useState(pin ?? null)` and a `useEffect([pin])` to react to URL-driven navigation (e.g. user comes from a trace, then taps another trace — drawer re-opens for the new pin). |
+| **Outcome** | Verified via HMR: navigating to `/?pin=wynyard` lands on the map with the Wynyard LocationDrawer already open. Closing the drawer manually does not strip the URL param (intentional — back-button behaviour stays predictable). |
+| **Trade-offs** | The URL stays `?pin=…` after the user closes the drawer manually. Acceptable; if it bothers anyone we can sync state → URL. We chose **not** to do that today because it would mean using `navigate()` inside `onOpenChange`, and over-syncing URL with transient UI state is exactly the kind of complexity that creates back-button surprises. |
+| **Commit / PR** | TBD |
+
+---
+
+<!-- TEMPLATE FOR FUTURE ENTRIES — copy below this line and fill in -->
+
+---
+
 <!-- TEMPLATE FOR FUTURE ENTRIES — copy below this line and fill in -->
 
 <!--
