@@ -321,6 +321,197 @@ export const SEED_PLAYLISTS: SeedPlaylist[] = [
   },
 ];
 
+/* ─────────────────────────────────────────────────
+   "Me" — the user as a stranger to themselves
+   Hand-authored traces the user has left across the city.
+   Used by /me to retell their year in story form.
+   ───────────────────────────────────────────────── */
+
+export type Season = "spring" | "summer" | "autumn" | "winter";
+
+export type MyTrace = {
+  id: string;
+  song: string;
+  artist: string;
+  place: string;
+  locationId?: string;
+  note: string;
+  mood: string;
+  /** Hand-annotated season (Sydney / Southern Hemisphere). */
+  season: Season;
+  /** Hand-annotated narrative timestamp ("11:47pm, Tuesday"). */
+  when: string;
+  /** Order in user's history; lower = earlier. */
+  order: number;
+};
+
+export const MY_TRACES: MyTrace[] = [
+  {
+    id: "m1",
+    song: "An Ending (Ascent)",
+    artist: "Brian Eno",
+    place: "UTS Library · L5",
+    locationId: "uts",
+    note: "third night in this city. fell asleep at this desk. woke up still feeling held.",
+    mood: "calm",
+    season: "summer",
+    when: "late January, around 2am",
+    order: 1,
+  },
+  {
+    id: "m2",
+    song: "An Ending (Ascent)",
+    artist: "Brian Eno",
+    place: "UTS Library · L7",
+    locationId: "uts",
+    note: "thesis at 2am. this song held me upright.",
+    mood: "soft",
+    season: "autumn",
+    when: "11:47pm, Tuesday",
+    order: 6,
+  },
+  {
+    id: "m3",
+    song: "Lover, You Should've Come Over",
+    artist: "Jeff Buckley",
+    place: "Wynyard platform 3",
+    locationId: "wynyard",
+    note: "the line wanted to go home softly. so did I.",
+    mood: "homesick",
+    season: "autumn",
+    when: "9:12pm, going home",
+    order: 5,
+  },
+  {
+    id: "m4",
+    song: "夜に駆ける",
+    artist: "YOASOBI",
+    place: "Wynyard platform 3",
+    locationId: "wynyard",
+    note: "missed my stop. didn't mind.",
+    mood: "soft",
+    season: "winter",
+    when: "8:40pm, a Friday",
+    order: 4,
+  },
+  {
+    id: "m5",
+    song: "Skinny Love",
+    artist: "Bon Iver",
+    place: "Glebe café",
+    locationId: "glebe",
+    note: "rain on the window. coffee got cold. didn't mind.",
+    mood: "soft",
+    season: "autumn",
+    when: "Sunday morning",
+    order: 7,
+  },
+  {
+    id: "m6",
+    song: "Sunday Morning",
+    artist: "The Velvet Underground",
+    place: "Single O, Surry Hills",
+    note: "first warm morning in weeks. ordered the same thing twice.",
+    mood: "hopeful",
+    season: "spring",
+    when: "early September, 9am",
+    order: 2,
+  },
+  {
+    id: "m7",
+    song: "Holocene",
+    artist: "Bon Iver",
+    place: "Wynyard platform 3",
+    locationId: "wynyard",
+    note: "everyone got off. I stayed for one more verse.",
+    mood: "calm",
+    season: "winter",
+    when: "rainy Wednesday, 7pm",
+    order: 3,
+  },
+  {
+    id: "m8",
+    song: "Harvest Moon",
+    artist: "Neil Young",
+    place: "Strand Arcade",
+    locationId: "strand",
+    note: "golden hour caught me on the escalator. stood still for the whole song.",
+    mood: "warm",
+    season: "summer",
+    when: "late afternoon, December",
+    order: 8,
+  },
+];
+
+/** First trace by hand-annotated order. */
+export function getMyFirstTrace(): MyTrace | undefined {
+  return [...MY_TRACES].sort((a, b) => a.order - b.order)[0];
+}
+
+/** Place where the user has left the most traces (with at least one). */
+export function getMyHomePlace(): { pin: Pin; tracesCount: number } | undefined {
+  const counts = new Map<string, number>();
+  for (const t of MY_TRACES) {
+    if (!t.locationId) continue;
+    counts.set(t.locationId, (counts.get(t.locationId) ?? 0) + 1);
+  }
+  let topId: string | undefined;
+  let topCount = 0;
+  for (const [id, n] of counts) {
+    if (n > topCount) {
+      topId = id;
+      topCount = n;
+    }
+  }
+  if (!topId) return undefined;
+  const pin = PINS.find((p) => p.id === topId);
+  return pin ? { pin, tracesCount: topCount } : undefined;
+}
+
+/**
+ * The "you were not alone" pair: a song the user wrote for that a stranger
+ * also wrote for. We pick the user's earliest such trace and the closest
+ * stranger trace by hand-authored proximity (no real timestamp math).
+ */
+export function getStrangerTimeOverlap():
+  | { mine: MyTrace; theirs: Trace; minutesApart: number }
+  | undefined {
+  for (const mine of [...MY_TRACES].sort((a, b) => a.order - b.order)) {
+    const theirs = FEED.find(
+      (t) => t.forSong.song === mine.song && t.forSong.artist === mine.artist
+    );
+    if (theirs) {
+      // Hand-authored overlap minutes — narrative, not computed.
+      // We pin a small "you and they were ~15 minutes apart" feel.
+      return { mine, theirs, minutesApart: 15 };
+    }
+  }
+  return undefined;
+}
+
+/** Group user traces by season. */
+export function getMyTracesBySeason(): Record<Season, MyTrace[]> {
+  const out: Record<Season, MyTrace[]> = {
+    spring: [],
+    summer: [],
+    autumn: [],
+    winter: [],
+  };
+  for (const t of MY_TRACES) {
+    out[t.season].push(t);
+  }
+  return out;
+}
+
+/** Sydney / Southern Hemisphere month → season. */
+export function currentSeason(now: Date = new Date()): Season {
+  const m = now.getMonth(); // 0-11
+  if (m === 11 || m === 0 || m === 1) return "summer";
+  if (m >= 2 && m <= 4) return "autumn";
+  if (m >= 5 && m <= 7) return "winter";
+  return "spring";
+}
+
 export const ALL_MOODS = ["calm", "lonely", "hopeful", "alive", "soft", "homesick", "focus", "warm"] as const;
 
 export const moodGradient: Record<string, string> = {

@@ -1,100 +1,298 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { Settings } from "lucide-react";
 import { PhoneShell } from "@/components/PhoneShell";
-import { Settings, MapPin, Music, Heart } from "lucide-react";
+import {
+  currentSeason,
+  getMyFirstTrace,
+  getMyHomePlace,
+  getMyTracesBySeason,
+  getStrangerTimeOverlap,
+  type MyTrace,
+  type Season,
+} from "@/lib/seed-data";
 
 export const Route = createFileRoute("/me")({
   head: () => ({
     meta: [
       { title: "Me — Ultrasound" },
-      { name: "description", content: "Your year of quiet inhabiting." },
+      { name: "description", content: "A small diary of how this city has been listening with you." },
     ],
   }),
   component: MeScreen,
 });
 
+const SEASONS: Season[] = ["spring", "summer", "autumn", "winter"];
+
+const SEASON_GRADIENT: Record<Season, string> = {
+  spring: "from-warm/30 via-primary/15 to-transparent",
+  summer: "from-warm/40 via-warm/10 to-transparent",
+  autumn: "from-destructive/20 via-warm/15 to-transparent",
+  winter: "from-primary/30 via-primary/10 to-transparent",
+};
+
+const SEASON_COPY: Record<Season, { lead: string; tail: string }> = {
+  spring: { lead: "This spring,", tail: "the city was warming back up to you." },
+  summer: { lead: "This summer,", tail: "you stayed up later than the sun." },
+  autumn: { lead: "This autumn,", tail: "you walked home slower." },
+  winter: { lead: "This winter,", tail: "you found small rooms that held you." },
+};
+
 function MeScreen() {
+  const first = useMemo(() => getMyFirstTrace(), []);
+  const overlap = useMemo(() => getStrangerTimeOverlap(), []);
+  const home = useMemo(() => getMyHomePlace(), []);
+  const bySeason = useMemo(() => getMyTracesBySeason(), []);
+  const initialSeason = useMemo(() => {
+    const cur = currentSeason();
+    return bySeason[cur].length > 0
+      ? cur
+      : (SEASONS.find((s) => bySeason[s].length > 0) ?? "autumn");
+  }, [bySeason]);
+  const [activeSeason, setActiveSeason] = useState<Season>(initialSeason);
+
   return (
     <PhoneShell>
-      <div className="px-6 pt-4 flex justify-between items-center">
-        <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-warm">Your 2026 in songs</p>
-        <button className="h-9 w-9 grid place-items-center rounded-full glass" aria-label="Settings">
+      {/* Ambient orbs — layer 0, behind everything */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="drift absolute top-[12%] -left-16 h-64 w-64 rounded-full bg-warm/10 blur-3xl" />
+        <div className="drift absolute top-[42%] -right-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl" style={{ animationDelay: "5s" }} />
+        <div className="drift absolute bottom-[8%] left-1/4 h-56 w-56 rounded-full bg-warm/8 blur-3xl" style={{ animationDelay: "9s" }} />
+      </div>
+
+      {/* Top bar */}
+      <header className="relative px-6 pt-4 flex items-center justify-between">
+        <p className="text-[9px] font-mono uppercase tracking-[0.24em] text-muted-foreground">
+          Ultrasound · your year
+        </p>
+        <button
+          aria-label="Settings"
+          className="h-9 w-9 grid place-items-center rounded-full glass"
+        >
           <Settings className="h-4 w-4" />
         </button>
-      </div>
+      </header>
 
-      <div className="px-6 mt-2 flex flex-col items-center text-center">
-        <div className="relative">
-          <div className="h-24 w-24 rounded-full bg-gradient-to-br from-warm to-primary shadow-glow grid place-items-center">
-            <span className="font-display text-3xl text-warm-foreground">L</span>
-          </div>
-          <span className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-warm border-2 border-background grid place-items-center">
-            <span className="text-[10px] font-mono text-warm-foreground">4</span>
-          </span>
+      {/* Section 0 · Identity (minimal) */}
+      <section className="relative mt-6 px-6 flex flex-col items-center text-center">
+        <div className="h-20 w-20 rounded-full bg-gradient-to-br from-warm to-primary shadow-glow grid place-items-center">
+          <span className="font-display text-[28px] text-warm-foreground">L</span>
         </div>
-        <h1 className="mt-4 font-display text-[24px]">Lina</h1>
-        <p className="mt-1 text-xs text-muted-foreground">Sydney · 7 months · listening with 412 strangers</p>
-      </div>
-
-      <div className="px-5 mt-7 grid grid-cols-3 gap-2.5">
-        {[
-          { icon: MapPin, n: "23", l: "places" },
-          { icon: Music, n: "186", l: "songs saved" },
-          { icon: Heart, n: "47", l: "traces left" },
-        ].map(({ icon: Icon, n, l }, i) => (
-          <div key={i} className="rounded-2xl p-3.5 glass border border-white/5 text-center">
-            <Icon className="h-4 w-4 mx-auto text-warm" />
-            <p className="mt-2 font-display text-xl">{n}</p>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{l}</p>
-          </div>
-        ))}
-      </div>
-
-      <section className="mx-6 mt-6 rounded-2xl overflow-hidden border border-white/10">
-        <div className="relative h-32 bg-gradient-to-br from-primary via-warm/50 to-background">
-          <div aria-hidden className="absolute -top-10 -right-10 h-40 w-40 bg-warm/40 rounded-full blur-3xl drift" />
-          <div className="absolute bottom-3 left-4 right-4">
-            <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-foreground/80">Your distributed belonging</p>
-            <p className="font-display text-[18px] mt-1">"This city is starting to know me back."</p>
-          </div>
-        </div>
-        <div className="p-4 bg-background/60">
-          <p className="text-[12px] text-muted-foreground leading-relaxed">
-            You return to 5 places weekly. Each one knows your songs.
-          </p>
-        </div>
+        <h1 className="mt-5 font-display text-[26px] leading-[1.15]">Lina</h1>
+        <p className="mt-3 font-display italic text-[14px] leading-relaxed text-foreground/70 max-w-[14rem]">
+          in this city for seven months,<br />
+          listening softly.
+        </p>
       </section>
 
-      <section className="mx-6 mt-6">
-        <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-warm mb-3">Strangers becoming familiar</p>
-        <div className="flex -space-x-2">
-          {["#F5C26B", "#B68CFF", "#FF8A9B", "#7AC9C6", "#E89F71"].map((c, i) => (
-            <div
-              key={i}
-              className="h-10 w-10 rounded-full border-2 border-background grid place-items-center text-[11px] font-mono text-background"
-              style={{ background: c }}
-            >
-              {String.fromCharCode(65 + i)}
+      {/* Section 1 · First trace */}
+      {first && (
+        <section className="relative mt-20 px-8">
+          <ChapterMark numeral="I." label="First heard" />
+          <Link
+            to="/playing"
+            search={{ song: first.song, artist: first.artist, loc: first.locationId }}
+            aria-label={`Play ${first.song} by ${first.artist}`}
+            className="mt-6 block group"
+          >
+            <p className="font-display text-[22px] leading-[1.25] italic text-foreground/95 group-hover:text-warm transition-colors">
+              "{first.song}"
+            </p>
+            <p className="mt-1 font-display text-[14px] text-muted-foreground italic">
+              — {first.artist}
+            </p>
+            <p className="mt-6 font-display italic text-[15px] leading-relaxed text-foreground/85">
+              "{first.note}"
+            </p>
+            <p className="mt-4 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
+              {first.place} · {first.when}
+            </p>
+          </Link>
+        </section>
+      )}
+
+      {/* Section 2 · One night you were not alone — the emotional peak */}
+      {overlap && (
+        <section className="relative mt-24 px-8">
+          <ChapterMark numeral="II." label="One night you were not alone" />
+          <Link
+            to="/playing"
+            search={{ song: overlap.mine.song, artist: overlap.mine.artist, loc: overlap.mine.locationId }}
+            aria-label={`Play ${overlap.mine.song} together`}
+            className="mt-6 block group"
+          >
+            <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
+              {overlap.mine.when}, you wrote:
+            </p>
+            <p className="mt-3 font-display italic text-[18px] leading-relaxed text-foreground/95 group-hover:text-warm transition-colors">
+              "{overlap.mine.note}"
+            </p>
+
+            {/* Sync pulse — the moment of overlap */}
+            <div className="my-10 flex items-center justify-center">
+              <span className="pulse-ring relative h-3 w-3 rounded-full">
+                <span className="absolute inset-0 rounded-full bg-warm" />
+              </span>
             </div>
-          ))}
-          <div className="h-10 w-10 rounded-full border-2 border-background bg-white/10 grid place-items-center text-[10px] font-mono text-foreground/80">
-            +12
-          </div>
+
+            <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
+              about ~{overlap.minutesApart} minutes later, someone else wrote
+              <br />about the same song:
+            </p>
+            <p className="mt-3 font-display italic text-[16px] leading-relaxed text-foreground/85">
+              "{overlap.theirs.note}"
+            </p>
+            <p className="mt-4 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
+              {overlap.theirs.userInitial}-stranger · {overlap.theirs.place}
+            </p>
+          </Link>
+        </section>
+      )}
+
+      {/* Section 3 · One place knows your songs */}
+      {home && (
+        <section className="relative mt-24 px-8">
+          <ChapterMark numeral="III." label="One place knows your songs" />
+          <Link
+            to="/"
+            search={{ pin: home.pin.id }}
+            aria-label={`Open map at ${home.pin.label}`}
+            className="mt-6 block group"
+          >
+            <p className="font-display text-[22px] leading-[1.25] text-foreground/95 group-hover:text-warm transition-colors">
+              {home.pin.label} heard you{" "}
+              <span className="italic text-gradient-warm">{numberToWord(home.tracesCount)}</span> times.
+            </p>
+            <p className="mt-5 font-display italic text-[15px] leading-relaxed text-foreground/75 max-w-[18rem]">
+              {home.pin.mood.toLowerCase().replace(/\.$/, "")}.
+            </p>
+          </Link>
+        </section>
+      )}
+
+      {/* Section 4 · Seasons */}
+      <section className="relative mt-24 px-8">
+        <ChapterMark numeral="IV." label="Seasons" />
+
+        {/* Season tabs */}
+        <div role="tablist" aria-label="Seasons" className="mt-6 flex items-center justify-center gap-1.5">
+          {SEASONS.map((s) => {
+            const has = bySeason[s].length > 0;
+            const active = s === activeSeason;
+            return (
+              <button
+                key={s}
+                role="tab"
+                aria-selected={active}
+                disabled={!has}
+                onClick={() => setActiveSeason(s)}
+                className={`text-[10px] font-mono uppercase tracking-[0.18em] px-2.5 py-1 rounded-full transition-all ${
+                  active
+                    ? "bg-warm text-warm-foreground"
+                    : has
+                    ? "text-foreground/70 hover:text-warm"
+                    : "text-muted-foreground/40"
+                }`}
+              >
+                {s}
+              </button>
+            );
+          })}
         </div>
+
+        {/* Season vignette */}
+        <SeasonVignette season={activeSeason} bySeason={bySeason} />
       </section>
 
-      <section className="mx-6 mt-6 rounded-2xl p-5 bg-card-gradient border border-white/10">
-        <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-warm">Year so far</p>
-        <h3 className="mt-2 font-display text-[18px] leading-snug">
-          Your most-listened: <span className="italic">An Ending (Ascent)</span>
-        </h3>
-        <p className="mt-1 text-[12px] text-muted-foreground">Brian Eno · 38 plays · mostly between 11pm and 2am</p>
-        <div className="mt-4 flex gap-1 h-10 items-end">
-          {[28, 35, 18, 52, 41, 67, 30, 48, 22, 60, 38, 55].map((h, i) => (
-            <div key={i} className="flex-1 rounded-sm bg-gradient-to-t from-warm/20 to-warm/80" style={{ height: `${h}%` }} />
-          ))}
-        </div>
-        <p className="mt-2 text-[10px] font-mono text-muted-foreground text-center">jan — apr</p>
+      {/* Section 5 · Footer */}
+      <section className="relative mt-24 px-8 pb-12 text-center">
+        <div className="mx-auto h-px w-16 bg-white/10" />
+        <p className="mt-8 font-display italic text-[15px] leading-relaxed text-foreground/85 max-w-[16rem] mx-auto">
+          Somewhere in the city,<br />
+          someone is reading<br />
+          a song you left behind.
+        </p>
+        <div className="mt-8 mx-auto h-px w-16 bg-white/10" />
+        <p className="mt-8 text-[9px] font-mono uppercase tracking-[0.32em] text-muted-foreground/70 leading-loose">
+          Ultrasound<br />
+          listening together<br />
+          quietly
+        </p>
       </section>
     </PhoneShell>
   );
 }
+
+function ChapterMark({ numeral, label }: { numeral: string; label: string }) {
+  return (
+    <div className="flex flex-col items-center text-center">
+      <span aria-hidden className="font-display italic text-[20px] text-warm/80">
+        {numeral}
+      </span>
+      <span className="mt-1 text-[10px] font-mono uppercase tracking-[0.24em] text-muted-foreground">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function SeasonVignette({
+  season,
+  bySeason,
+}: {
+  season: Season;
+  bySeason: Record<Season, ReturnType<typeof getMyTracesBySeason>[Season]>;
+}) {
+  const traces = bySeason[season];
+  const t = traces[0];
+  const copy = SEASON_COPY[season];
+
+  return (
+    <div className="relative mt-7 rounded-2xl overflow-hidden">
+      <div
+        aria-hidden
+        className={`absolute inset-0 bg-gradient-to-br ${SEASON_GRADIENT[season]} pointer-events-none`}
+      />
+      <div className="relative px-2 py-2">
+        {t ? (
+          <>
+            <p className="font-display text-[18px] leading-[1.3] text-foreground/95">
+              <span className="italic text-warm">{copy.lead}</span>
+              <br />
+              {seasonNarrative(t, traces.length)}
+            </p>
+            <p className="mt-5 font-display italic text-[14px] leading-relaxed text-foreground/80 max-w-[18rem]">
+              "{t.note}"
+            </p>
+            <p className="mt-3 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
+              {t.place} · {t.when}
+            </p>
+            <p className="mt-6 font-display italic text-[13px] text-foreground/55 max-w-[16rem]">
+              {copy.tail}
+            </p>
+          </>
+        ) : (
+          <p className="font-display italic text-[14px] text-muted-foreground">
+            {copy.lead.toLowerCase()} the city was quiet.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Build the narrative second line of the seasonal vignette. */
+function seasonNarrative(t: MyTrace, count: number): string {
+  const placeShort = t.place.split("·")[0].trim();
+  if (count > 1) {
+    return `you returned to ${placeShort} ${numberToWord(count)} times,`;
+  }
+  return `you went once to ${placeShort},`;
+}
+
+/** Tiny number → word for narrative use. Falls back to digits beyond ten. */
+function numberToWord(n: number): string {
+  const words = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
+  return words[n] ?? String(n);
+}
+
