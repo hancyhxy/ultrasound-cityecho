@@ -150,6 +150,22 @@ Each candidate is a possible storytelling unit. Format: **headline · what it te
 
 ---
 
+### ITER-5 · 2026-05-06 · Visual-language pivot toward "modern-pop, friend-shared, emoji-loaded" idiom
+
+| Field | Content |
+|---|---|
+| **Pain point** | Two compounding problems surfaced in playtest. (a) `/playing` is **too dashboard-y** — a 6-tile grid of mood / "here, now" counter / pin / equalizer / progress / controls. It reads as a *control panel*, not as a *room you've stepped into to be with strangers*. (b) The current ambient/literary aesthetic (Fraunces serif + amber/violet midnight-blue) is **moving toward "art house" while the product concept is "social and intimate"**. The user noticed the visual language is leaning solemn-curatorial rather than warm-shared. The mismatch makes `/playing` feel like a museum wall when it should feel like a friend's room. |
+| **Source of insight** | User identified a reference product (modern-pop social listening app) with a visual DNA that matches Ultrasound's product intent: **dark base + neon purple/magenta accents + chunky rounded-pill components + heavy use of emoji as iconography + bold sans-serif display type + chip/pill layout density + portrait + neon-glow halos**. User's directive: "color, type, radius, layout — borrow visual grammar 1:1; content + features stay ours." |
+| **Severity** | **3 — Major friction.** The mismatch between visual tone and product intent dilutes Companionship-in-Solitude (the page reads cold/curated rather than warm/shared) and Voice-and-Tone (the Fraunces gravity contradicts "it's like overhearing a friend"). |
+| **Dimension(s) affected** | Voice & tone · Companionship in solitude · Emotional resonance · Pace & breathing room (the new grammar is denser/punchier than the literary one) |
+| **Hypothesis** | The fastest, lowest-risk way to test the pivot is to (a) **codify the new visual grammar in a `docs/design.md`** so every screen has a shared rule book, then (b) **do style-only overrides on the largest visual elements first** (background gradient, accent color, component radii, button shape, type pairing) without touching feature/content. If the override feels right across `/`, `/traces`, `/me`, then `/playing` gets a structural redesign in ITER-6. If it feels wrong, the override is cheap to revert (CSS tokens only). |
+| **Change made (this entry)** | Authored `docs/design.md` codifying the new visual system: dark-purple base (replacing midnight-indigo), neon magenta/purple gradient accents (replacing amber), 1.5rem-2rem rounded-pill component radii (replacing 0.875rem), bold sans-serif display (Inter/SF-Display direction, with Fraunces demoted to a specialized "editorial pull-quote" role only used in `/me` chapter narratives), emoji-as-iconography rule, neon-glow halo elevation rule replacing soft drop-shadows. **No code changes in this entry** — design.md only. Code changes are split into ITER-6 (token swap on `styles.css`), ITER-7 (`/playing` structural redesign), ITER-8 (cross-page polish). |
+| **Outcome** | TBD — design.md ships; ITER-6 begins next. |
+| **Trade-offs** | (1) **Fraunces does not disappear, but is demoted.** The editorial chapter narration on `/me` (Roman numerals + italic pull-quotes) is one of ITER-4's emotional levers and we lose narrative voice if we delete the serif globally. The compromise: Fraunces stays only as a *pull-quote face* inside `/me` and trace `note` italics; everywhere else (headlines, tabs, buttons, captions) becomes the new bold-sans display. (2) **Risk of looking generic.** "Dark + neon purple + chunky rounded" is a popular 2024-2025 aesthetic — Ultrasound's distinctive note risks being absorbed. Mitigation: keep the *content voice* (one-sentence traces, "a stranger" anonymity, place-bound noting) untouched; the visual frame changes, the writing inside it doesn't. (3) **emoji-as-iconography requires data-model rethink eventually.** Right now `mood` is a 6-string enum (`calm/lonely/hopeful/alive/soft/homesick`); to put emoji on cards we either map enum → emoji (acceptable for ITER-6) or replace mood-strings with mood-emojis (deferred). |
+| **Commit / PR** | TBD |
+
+---
+
 <!-- TEMPLATE FOR FUTURE ENTRIES — copy below this line and fill in -->
 
 <!--
