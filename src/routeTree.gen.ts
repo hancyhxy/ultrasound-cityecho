@@ -10,10 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TracesRouteImport } from './routes/traces'
-import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as PlayerRouteImport } from './routes/player'
-import { Route as MapRouteImport } from './routes/map'
-import { Route as LibraryRouteImport } from './routes/library'
+import { Route as PlaylistRouteImport } from './routes/playlist'
+import { Route as PlayingRouteImport } from './routes/playing'
+import { Route as MeRouteImport } from './routes/me'
 import { Route as IndexRouteImport } from './routes/index'
 
 const TracesRoute = TracesRouteImport.update({
@@ -21,24 +20,19 @@ const TracesRoute = TracesRouteImport.update({
   path: '/traces',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
+const PlaylistRoute = PlaylistRouteImport.update({
+  id: '/playlist',
+  path: '/playlist',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PlayerRoute = PlayerRouteImport.update({
-  id: '/player',
-  path: '/player',
+const PlayingRoute = PlayingRouteImport.update({
+  id: '/playing',
+  path: '/playing',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MapRoute = MapRouteImport.update({
-  id: '/map',
-  path: '/map',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LibraryRoute = LibraryRouteImport.update({
-  id: '/library',
-  path: '/library',
+const MeRoute = MeRouteImport.update({
+  id: '/me',
+  path: '/me',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -49,50 +43,39 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/library': typeof LibraryRoute
-  '/map': typeof MapRoute
-  '/player': typeof PlayerRoute
-  '/profile': typeof ProfileRoute
+  '/me': typeof MeRoute
+  '/playing': typeof PlayingRoute
+  '/playlist': typeof PlaylistRoute
   '/traces': typeof TracesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/library': typeof LibraryRoute
-  '/map': typeof MapRoute
-  '/player': typeof PlayerRoute
-  '/profile': typeof ProfileRoute
+  '/me': typeof MeRoute
+  '/playing': typeof PlayingRoute
+  '/playlist': typeof PlaylistRoute
   '/traces': typeof TracesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/library': typeof LibraryRoute
-  '/map': typeof MapRoute
-  '/player': typeof PlayerRoute
-  '/profile': typeof ProfileRoute
+  '/me': typeof MeRoute
+  '/playing': typeof PlayingRoute
+  '/playlist': typeof PlaylistRoute
   '/traces': typeof TracesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/library' | '/map' | '/player' | '/profile' | '/traces'
+  fullPaths: '/' | '/me' | '/playing' | '/playlist' | '/traces'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/library' | '/map' | '/player' | '/profile' | '/traces'
-  id:
-    | '__root__'
-    | '/'
-    | '/library'
-    | '/map'
-    | '/player'
-    | '/profile'
-    | '/traces'
+  to: '/' | '/me' | '/playing' | '/playlist' | '/traces'
+  id: '__root__' | '/' | '/me' | '/playing' | '/playlist' | '/traces'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  LibraryRoute: typeof LibraryRoute
-  MapRoute: typeof MapRoute
-  PlayerRoute: typeof PlayerRoute
-  ProfileRoute: typeof ProfileRoute
+  MeRoute: typeof MeRoute
+  PlayingRoute: typeof PlayingRoute
+  PlaylistRoute: typeof PlaylistRoute
   TracesRoute: typeof TracesRoute
 }
 
@@ -105,32 +88,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TracesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
+    '/playlist': {
+      id: '/playlist'
+      path: '/playlist'
+      fullPath: '/playlist'
+      preLoaderRoute: typeof PlaylistRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/player': {
-      id: '/player'
-      path: '/player'
-      fullPath: '/player'
-      preLoaderRoute: typeof PlayerRouteImport
+    '/playing': {
+      id: '/playing'
+      path: '/playing'
+      fullPath: '/playing'
+      preLoaderRoute: typeof PlayingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/map': {
-      id: '/map'
-      path: '/map'
-      fullPath: '/map'
-      preLoaderRoute: typeof MapRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/library': {
-      id: '/library'
-      path: '/library'
-      fullPath: '/library'
-      preLoaderRoute: typeof LibraryRouteImport
+    '/me': {
+      id: '/me'
+      path: '/me'
+      fullPath: '/me'
+      preLoaderRoute: typeof MeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -145,10 +121,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  LibraryRoute: LibraryRoute,
-  MapRoute: MapRoute,
-  PlayerRoute: PlayerRoute,
-  ProfileRoute: ProfileRoute,
+  MeRoute: MeRoute,
+  PlayingRoute: PlayingRoute,
+  PlaylistRoute: PlaylistRoute,
   TracesRoute: TracesRoute,
 }
 export const routeTree = rootRouteImport

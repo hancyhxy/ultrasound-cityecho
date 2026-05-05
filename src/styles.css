@@ -157,6 +157,17 @@
   .shadow-soft { box-shadow: var(--shadow-soft); }
   .bg-aurora { background-image: var(--gradient-aurora); }
   .bg-card-gradient { background-image: var(--gradient-card); }
+
+  /* 3D flip primitives — used by Playing page collage */
+  .perspective-1800 { perspective: 1800px; }
+  .preserve-3d { transform-style: preserve-3d; }
+  .backface-hidden {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .rotate-y-180 { transform: rotateY(180deg); }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+  .scrollbar-none { scrollbar-width: none; }
 }
 
 /* Ambient pulse — for "listening together" indicators */

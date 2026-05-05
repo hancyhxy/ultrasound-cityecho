@@ -1,13 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Map, Sparkles, Library, User } from "lucide-react";
+import { Map, Sparkles, Library, User } from "lucide-react";
 import type { ReactNode } from "react";
 
 const NAV = [
-  { to: "/", label: "Now", icon: Home },
-  { to: "/map", label: "Map", icon: Map },
-  { to: "/traces", label: "Traces", icon: Sparkles },
-  { to: "/library", label: "Library", icon: Library },
-  { to: "/profile", label: "You", icon: User },
+  { to: "/", label: "Map", icon: Map },
+  { to: "/traces", label: "Trace", icon: Sparkles },
+  { to: "/playlist", label: "Playlist", icon: Library },
+  { to: "/me", label: "Me", icon: User },
 ] as const;
 
 export function PhoneShell({ children }: { children: ReactNode }) {

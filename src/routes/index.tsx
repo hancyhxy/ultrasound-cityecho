@@ -1,144 +1,146 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { MapPin, Headphones, ArrowRight, Quote } from "lucide-react";
+import { Search, Layers, Play, Users, Plus, Heart } from "lucide-react";
+import { useState } from "react";
 import { PhoneShell } from "@/components/PhoneShell";
 import { Equalizer } from "@/components/Equalizer";
+import { LocationDrawer } from "@/components/LocationDrawer";
+import { PINS } from "@/lib/seed-data";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Now — Ultrasound" },
-      { name: "description", content: "Hear what people around you are listening to right now." },
+      { title: "Music Map — Ultrasound" },
+      { name: "description", content: "A city organised by what people felt here, song by song." },
     ],
   }),
-  component: NowScreen,
+  component: MapScreen,
 });
 
-const TRACES = [
-  {
-    song: "Lover, You Should've Come Over",
-    artist: "Jeff Buckley",
-    note: "first week here. didn't know anyone. this got me through.",
-    listeners: 12,
-  },
-  {
-    song: "光るなら",
-    artist: "Goose house",
-    note: "studying for finals. somewhere in level 5.",
-    listeners: 7,
-  },
-  {
-    song: "An Ending (Ascent)",
-    artist: "Brian Eno",
-    note: "rain outside. perfect for thesis writing.",
-    listeners: 4,
-  },
-];
+const YOU_ID = "uts";
 
-function NowScreen() {
+function MapScreen() {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = PINS.find((p) => p.id === selectedId) ?? null;
+
   return (
     <PhoneShell>
-      {/* Hero: where you are */}
-      <header className="px-6 pt-4">
-        <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-[0.2em] text-warm">
-          <MapPin className="h-3 w-3" />
-          <span>UTS Library · Level 5</span>
-        </div>
-        <h1 className="mt-3 text-[34px] leading-[1.05] font-medium">
-          <span className="text-foreground/95">This room is</span>
-          <br />
-          <span className="text-gradient-warm italic">listening with you.</span>
+      <div className="px-6 pt-4">
+        <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-warm">Explore</p>
+        <h1 className="mt-2 text-[30px] leading-[1.1] font-medium">
+          A city, <span className="text-gradient-warm italic">organised by feeling.</span>
         </h1>
-        <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-          12 people here are inside the same three minutes of music right now.
-        </p>
-      </header>
 
-      {/* Now playing card */}
-      <section className="px-5 mt-7">
-        <Link
-          to="/player"
-          className="group relative block rounded-[28px] p-5 bg-card-gradient border border-white/10 shadow-glow overflow-hidden"
-        >
-          {/* glow orb */}
-          <div aria-hidden className="absolute -top-12 -right-12 h-44 w-44 rounded-full bg-warm/40 blur-3xl drift" />
-
-          <div className="relative flex items-center gap-4">
-            <div className="relative">
-              <div className="pulse-ring absolute inset-0 rounded-full" />
-              <div className="relative h-16 w-16 rounded-2xl bg-gradient-to-br from-warm to-primary shadow-warm grid place-items-center">
-                <Headphones className="h-7 w-7 text-warm-foreground" strokeWidth={2} />
-              </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">Library Soundscape</p>
-              <h3 className="mt-1 font-display text-lg leading-tight truncate">Quiet, focused, late-afternoon</h3>
-              <div className="mt-2 flex items-center gap-2">
-                <Equalizer />
-                <span className="text-xs text-muted-foreground">12 listening together</span>
-              </div>
-            </div>
+        <div className="mt-5 flex gap-2">
+          <div className="flex-1 h-11 rounded-full glass flex items-center px-4 gap-2">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">Search a place, a mood, a song…</span>
           </div>
-
-          <div className="relative mt-5 flex items-center justify-between">
-            <div className="flex gap-1.5">
-              {["focus", "calm", "instrumental"].map((t) => (
-                <span key={t} className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/5 text-foreground/70 border border-white/5">
-                  {t}
-                </span>
-              ))}
-            </div>
-            <span className="flex items-center gap-1 text-xs text-warm font-medium">
-              Tune in <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-            </span>
-          </div>
-        </Link>
-      </section>
-
-      {/* Traces left here */}
-      <section className="px-6 mt-9">
-        <div className="flex items-baseline justify-between mb-4">
-          <h2 className="text-[20px] font-medium">Traces left here</h2>
-          <Link to="/traces" className="text-xs text-muted-foreground hover:text-warm transition-colors">all</Link>
+          <button className="h-11 w-11 rounded-full glass grid place-items-center">
+            <Layers className="h-4 w-4" />
+          </button>
         </div>
+      </div>
 
-        <div className="space-y-3">
-          {TRACES.map((t, i) => (
-            <article key={i} className="rounded-2xl p-4 glass border border-white/5">
-              <div className="flex items-start gap-3">
-                <Quote className="h-4 w-4 text-warm shrink-0 mt-0.5" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-[13px] leading-relaxed text-foreground/85 italic">"{t.note}"</p>
-                  <div className="mt-3 flex items-center justify-between">
-                    <div className="min-w-0">
-                      <p className="text-[13px] font-medium truncate">{t.song}</p>
-                      <p className="text-[11px] text-muted-foreground truncate">{t.artist}</p>
-                    </div>
-                    <span className="shrink-0 ml-3 text-[10px] font-mono text-muted-foreground">
-                      {t.listeners} here
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </article>
+      <div className="mx-5 mt-5 relative aspect-[4/5] rounded-[28px] overflow-hidden border border-white/10 bg-surface">
+        <svg viewBox="0 0 100 125" className="absolute inset-0 w-full h-full opacity-50">
+          <defs>
+            <radialGradient id="g1" cx="40%" cy="35%">
+              <stop offset="0%" stopColor="oklch(0.4 0.18 295)" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="transparent" />
+            </radialGradient>
+            <radialGradient id="g2" cx="75%" cy="70%">
+              <stop offset="0%" stopColor="oklch(0.55 0.16 60)" stopOpacity="0.55" />
+              <stop offset="100%" stopColor="transparent" />
+            </radialGradient>
+          </defs>
+          <rect width="100" height="125" fill="url(#g1)" />
+          <rect width="100" height="125" fill="url(#g2)" />
+          {Array.from({ length: 8 }).map((_, i) => (
+            <ellipse
+              key={i}
+              cx="50" cy="62"
+              rx={20 + i * 7} ry={14 + i * 5}
+              fill="none"
+              stroke="oklch(0.85 0.08 70 / 0.08)"
+              strokeWidth="0.2"
+            />
           ))}
-        </div>
-      </section>
+          <path
+            d="M 8 22 Q 30 40, 55 50 T 92 92"
+            stroke="oklch(0.82 0.13 65 / 0.7)"
+            strokeWidth="0.6"
+            strokeDasharray="1.5 1.5"
+            fill="none"
+          />
+        </svg>
 
-      {/* Tonight's drift */}
-      <section className="px-6 mt-9">
-        <h2 className="text-[20px] font-medium mb-4">Tonight, on your line</h2>
-        <Link to="/map" className="block rounded-2xl p-4 glass border border-white/5 hover:border-warm/30 transition-colors">
-          <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">T2 · Burwood → Wynyard</p>
-          <p className="mt-2 text-[15px] leading-snug">
-            <span className="text-foreground/90">A stranger left a song on your line.</span>{" "}
-            <span className="text-warm">It's been played 47 times this week.</span>
-          </p>
-          <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-warm animate-pulse" />
-            See the music map
+        {PINS.map((p) => {
+          const active = p.id === selectedId;
+          return (
+            <button
+              key={p.id}
+              onClick={() => setSelectedId(p.id)}
+              aria-label={`Open playlist for ${p.label}`}
+              className="group absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center focus:outline-none"
+              style={{ left: `${p.x}%`, top: `${p.y}%`, zIndex: active ? 30 : 10 }}
+            >
+              <div className="relative">
+                {p.hot && !active && (
+                  <span className="absolute inset-0 rounded-full bg-warm/40 animate-ping" />
+                )}
+                <span
+                  className={`relative block rounded-full transition-all duration-300 ${
+                    active
+                      ? "h-4 w-4 bg-warm ring-4 ring-warm/30 shadow-warm"
+                      : p.hot
+                      ? "h-3 w-3 bg-warm shadow-warm group-hover:scale-125"
+                      : "h-2.5 w-2.5 bg-primary/80 group-hover:bg-warm group-hover:scale-125"
+                  }`}
+                />
+              </div>
+              <div
+                className={`mt-1.5 px-2 py-0.5 rounded-md backdrop-blur-sm border transition-all ${
+                  active
+                    ? "bg-warm text-warm-foreground border-warm scale-105"
+                    : "bg-background/80 border-white/10 opacity-90 group-hover:opacity-100"
+                }`}
+              >
+                <p className="text-[9px] font-medium leading-tight whitespace-nowrap">{p.label}</p>
+                <p
+                  className={`text-[8px] font-mono leading-tight ${
+                    active ? "text-warm-foreground/80" : "text-warm"
+                  }`}
+                >
+                  {p.count} traces
+                </p>
+              </div>
+            </button>
+          );
+        })}
+
+        <div
+          className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+          style={{
+            left: `${PINS.find((p) => p.id === YOU_ID)!.x}%`,
+            top: `${PINS.find((p) => p.id === YOU_ID)!.y}%`,
+          }}
+        >
+          <div className="pulse-ring relative h-4 w-4 rounded-full">
+            <span className="absolute inset-1 rounded-full bg-warm shadow-warm" />
           </div>
-        </Link>
-      </section>
+        </div>
+      </div>
+
+      {!selected && (
+        <section className="mx-6 mt-5 rounded-2xl p-4 glass border border-white/5">
+          <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-warm">Tap a pin</p>
+          <p className="mt-2 text-[14px] leading-snug text-muted-foreground">
+            Each place holds its own quiet listening. Tap to hear what plays here, right now.
+          </p>
+        </section>
+      )}
+
+      <LocationDrawer pin={selected} onOpenChange={(open) => !open && setSelectedId(null)} />
     </PhoneShell>
   );
 }

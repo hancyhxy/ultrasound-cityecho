@@ -2,21 +2,22 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PhoneShell } from "@/components/PhoneShell";
 import { Settings, MapPin, Music, Heart } from "lucide-react";
 
-export const Route = createFileRoute("/profile")({
+export const Route = createFileRoute("/me")({
   head: () => ({
     meta: [
-      { title: "You — Ultrasound" },
-      { name: "description", content: "Your quiet inhabiting of the city." },
+      { title: "Me — Ultrasound" },
+      { name: "description", content: "Your year of quiet inhabiting." },
     ],
   }),
-  component: ProfileScreen,
+  component: MeScreen,
 });
 
-function ProfileScreen() {
+function MeScreen() {
   return (
     <PhoneShell>
-      <div className="px-6 pt-4 flex justify-end">
-        <button className="h-9 w-9 grid place-items-center rounded-full glass">
+      <div className="px-6 pt-4 flex justify-between items-center">
+        <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-warm">Your 2026 in songs</p>
+        <button className="h-9 w-9 grid place-items-center rounded-full glass" aria-label="Settings">
           <Settings className="h-4 w-4" />
         </button>
       </div>
@@ -79,6 +80,20 @@ function ProfileScreen() {
             +12
           </div>
         </div>
+      </section>
+
+      <section className="mx-6 mt-6 rounded-2xl p-5 bg-card-gradient border border-white/10">
+        <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-warm">Year so far</p>
+        <h3 className="mt-2 font-display text-[18px] leading-snug">
+          Your most-listened: <span className="italic">An Ending (Ascent)</span>
+        </h3>
+        <p className="mt-1 text-[12px] text-muted-foreground">Brian Eno · 38 plays · mostly between 11pm and 2am</p>
+        <div className="mt-4 flex gap-1 h-10 items-end">
+          {[28, 35, 18, 52, 41, 67, 30, 48, 22, 60, 38, 55].map((h, i) => (
+            <div key={i} className="flex-1 rounded-sm bg-gradient-to-t from-warm/20 to-warm/80" style={{ height: `${h}%` }} />
+          ))}
+        </div>
+        <p className="mt-2 text-[10px] font-mono text-muted-foreground text-center">jan — apr</p>
       </section>
     </PhoneShell>
   );
