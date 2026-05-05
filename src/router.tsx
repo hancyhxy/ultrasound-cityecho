@@ -7,10 +7,10 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-portrait bg-accent-hot/15 shadow-neon">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-8 w-8 text-destructive"
+            className="h-8 w-8 text-accent-hot"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -23,12 +23,12 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
             />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Something went wrong</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight uppercase text-foreground">Something went wrong</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           An unexpected error occurred. Please try again.
         </p>
         {import.meta.env.DEV && error.message && (
-          <pre className="mt-4 max-h-40 overflow-auto rounded-md bg-muted p-3 text-left font-mono text-xs text-destructive">
+          <pre className="mt-4 max-h-40 overflow-auto rounded-card-lg bg-muted p-3 text-left font-mono text-xs text-accent-hot">
             {error.message}
           </pre>
         )}
@@ -38,13 +38,13 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-pill bg-gradient-neon px-5 py-2.5 text-sm font-bold text-white shadow-neon transition-opacity hover:opacity-90"
           >
             Try again
           </button>
           <a
             href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            className="inline-flex items-center justify-center rounded-pill border border-white/10 bg-surface px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-surface-elevated"
           >
             Go home
           </a>

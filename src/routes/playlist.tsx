@@ -1,3 +1,10 @@
+// TODO ITER-9+: redesign /playlist UX from scratch.
+// This page is Lovable-prototype residue — its UX was never re-examined during
+// ITER-1..ITER-7. ITER-7 only token-shifts the visuals so it doesn't visually
+// break vs. the rest of the app; structure and information hierarchy below
+// remain Lovable-original and should be rebuilt around place-bound seed
+// playlists + user-pinned traces playlists in a future iteration.
+
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Play, Plus, Trash2, X, MapPin } from "lucide-react";
@@ -56,17 +63,17 @@ function PlaylistScreen() {
     <PhoneShell>
       <header className="px-6 pt-4 flex items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-warm">Yours</p>
+          <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-accent">Yours</p>
           <h1 className="mt-2 text-[28px] leading-[1.1] font-medium">
-            The places you<br /><span className="italic text-gradient-warm">come back to.</span>
+            The places you<br /><span className="italic text-gradient-neon">come back to.</span>
           </h1>
         </div>
         <button
           onClick={() => setCreateOpen(true)}
           aria-label="Create new playlist"
-          className="h-11 w-11 rounded-full bg-warm shadow-warm grid place-items-center hover:scale-105 transition-transform shrink-0 mt-1"
+          className="h-11 w-11 rounded-full bg-accent shadow-accent grid place-items-center hover:scale-105 transition-transform shrink-0 mt-1"
         >
-          <Plus className="h-5 w-5 text-warm-foreground" strokeWidth={2.5} />
+          <Plus className="h-5 w-5 text-accent-foreground" strokeWidth={2.5} />
         </button>
       </header>
 
@@ -82,7 +89,7 @@ function PlaylistScreen() {
               }}
               className={`px-3 py-1.5 rounded-full text-[11px] font-mono uppercase tracking-wider transition-colors ${
                 filterMode === m
-                  ? "bg-warm text-warm-foreground"
+                  ? "bg-accent text-accent-foreground"
                   : "bg-white/5 text-muted-foreground hover:bg-white/10"
               }`}
             >
@@ -99,7 +106,7 @@ function PlaylistScreen() {
                 onClick={() => setFilterValue(filterValue === m ? null : m)}
                 className={`px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider transition-colors ${
                   filterValue === m
-                    ? "bg-warm/30 text-warm border border-warm/40"
+                    ? "bg-accent/30 text-accent border border-accent/40"
                     : "bg-white/5 text-foreground/70 border border-white/5 hover:bg-white/10"
                 }`}
               >
@@ -117,7 +124,7 @@ function PlaylistScreen() {
                 onClick={() => setFilterValue(filterValue === p.id ? null : p.id)}
                 className={`px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider transition-colors flex items-center gap-1 ${
                   filterValue === p.id
-                    ? "bg-warm/30 text-warm border border-warm/40"
+                    ? "bg-accent/30 text-accent border border-accent/40"
                     : "bg-white/5 text-foreground/70 border border-white/5 hover:bg-white/10"
                 }`}
               >
@@ -142,12 +149,12 @@ function PlaylistScreen() {
       </div>
 
       <section className="mx-6 mt-7 rounded-2xl p-5 bg-card-gradient border border-white/10">
-        <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-warm">This week</p>
+        <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-accent">This week</p>
         <h3 className="mt-2 font-display text-[20px] leading-snug">You contributed 4 traces.</h3>
         <p className="mt-1 text-[13px] text-muted-foreground">3 strangers played the songs you pinned.</p>
         <div className="mt-4 flex gap-1.5 h-12 items-end">
           {[40, 22, 78, 55, 90, 30, 65].map((h, i) => (
-            <div key={i} className="flex-1 rounded-md bg-gradient-to-t from-warm/30 to-warm" style={{ height: `${h}%` }} />
+            <div key={i} className="flex-1 rounded-md bg-gradient-to-t from-accent/30 to-accent" style={{ height: `${h}%` }} />
           ))}
         </div>
       </section>
@@ -169,7 +176,7 @@ function PlaylistCard({ card, onDelete }: { card: Card; onDelete: () => void }) 
   const isUser = card.kind === "user";
   const data = card.data;
   const gradient = isUser
-    ? "from-warm/60 to-primary/60"
+    ? "from-accent/60 to-primary/60"
     : (data as SeedPlaylist).gradient;
   const count = isUser ? (data as UserPlaylist).songs.length : (data as SeedPlaylist).count;
 
@@ -192,7 +199,7 @@ function PlaylistCard({ card, onDelete }: { card: Card; onDelete: () => void }) 
         </button>
       )}
       {isUser && (
-        <span className="absolute top-2 left-2 text-[8px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-warm/30 text-warm border border-warm/40">
+        <span className="absolute top-2 left-2 text-[8px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-accent/30 text-accent border border-accent/40">
           yours
         </span>
       )}
@@ -201,8 +208,8 @@ function PlaylistCard({ card, onDelete }: { card: Card; onDelete: () => void }) 
         <p className="text-[13px] font-medium leading-tight line-clamp-2">{data.name}</p>
         <div className="mt-1.5 flex items-center justify-between">
           <span className="text-[10px] font-mono text-muted-foreground">{count} songs</span>
-          <span className="h-7 w-7 rounded-full bg-warm grid place-items-center shadow-warm opacity-0 group-hover:opacity-100 transition-opacity">
-            <Play className="h-3 w-3 text-warm-foreground" fill="currentColor" />
+          <span className="h-7 w-7 rounded-full bg-accent grid place-items-center shadow-accent opacity-0 group-hover:opacity-100 transition-opacity">
+            <Play className="h-3 w-3 text-accent-foreground" fill="currentColor" />
           </span>
         </div>
         {data.moods.length > 0 && (
@@ -269,7 +276,7 @@ function CreatePlaylistModal({
           placeholder="e.g. Sunday on the line"
           maxLength={60}
           autoFocus
-          className="mt-5 w-full h-12 rounded-2xl bg-background/50 border border-white/10 px-4 text-[15px] focus:outline-none focus:border-warm/40 placeholder:text-muted-foreground/60"
+          className="mt-5 w-full h-12 rounded-2xl bg-background/50 border border-white/10 px-4 text-[15px] focus:outline-none focus:border-accent/40 placeholder:text-muted-foreground/60"
         />
 
         <p className="mt-5 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">Moods</p>
@@ -280,7 +287,7 @@ function CreatePlaylistModal({
               onClick={() => toggleMood(m)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                 moods.includes(m)
-                  ? "bg-warm text-warm-foreground"
+                  ? "bg-accent text-accent-foreground"
                   : "bg-white/5 text-foreground/70 hover:bg-white/10"
               }`}
             >
@@ -297,7 +304,7 @@ function CreatePlaylistModal({
               onClick={() => setLocationId(locationId === p.id ? undefined : p.id)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1 ${
                 locationId === p.id
-                  ? "bg-warm/30 text-warm border border-warm/40"
+                  ? "bg-accent/30 text-accent border border-accent/40"
                   : "bg-white/5 text-foreground/70 hover:bg-white/10 border border-transparent"
               }`}
             >
@@ -310,7 +317,7 @@ function CreatePlaylistModal({
         <button
           onClick={handleSave}
           disabled={!canSave}
-          className="mt-7 w-full h-12 rounded-2xl bg-warm text-warm-foreground font-medium hover:opacity-90 transition-opacity shadow-warm disabled:opacity-40 disabled:cursor-not-allowed"
+          className="mt-7 w-full h-12 rounded-2xl bg-accent text-accent-foreground font-medium hover:opacity-90 transition-opacity shadow-accent disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Make it
         </button>

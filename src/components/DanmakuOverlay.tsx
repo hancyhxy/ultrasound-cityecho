@@ -98,9 +98,9 @@ export function DanmakuOverlay({
                 : "opacity-100 translate-y-0"
             }`}
           >
-            <div className="rounded-2xl glass-strong border border-warm/30 px-3 py-2 shadow-glow backdrop-blur-md hover:border-warm transition-colors">
+            <div className="rounded-2xl glass-strong border border-accent/30 px-3 py-2 shadow-glow backdrop-blur-md hover:border-accent transition-colors">
               <div className="flex items-start gap-2">
-                <Quote className="h-3 w-3 text-warm shrink-0 mt-0.5" />
+                <Quote className="h-3 w-3 text-accent shrink-0 mt-0.5" />
                 <div className="min-w-0">
                   <p className="text-[11px] leading-snug italic text-foreground/95 line-clamp-2">
                     {f.trace.note}

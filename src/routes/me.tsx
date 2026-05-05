@@ -25,9 +25,9 @@ export const Route = createFileRoute("/me")({
 const SEASONS: Season[] = ["spring", "summer", "autumn", "winter"];
 
 const SEASON_GRADIENT: Record<Season, string> = {
-  spring: "from-warm/30 via-primary/15 to-transparent",
-  summer: "from-warm/40 via-warm/10 to-transparent",
-  autumn: "from-destructive/20 via-warm/15 to-transparent",
+  spring: "from-accent/30 via-primary/15 to-transparent",
+  summer: "from-accent/40 via-accent/10 to-transparent",
+  autumn: "from-destructive/20 via-accent/15 to-transparent",
   winter: "from-primary/30 via-primary/10 to-transparent",
 };
 
@@ -55,9 +55,9 @@ function MeScreen() {
     <PhoneShell>
       {/* Ambient orbs — layer 0, behind everything */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="drift absolute top-[12%] -left-16 h-64 w-64 rounded-full bg-warm/10 blur-3xl" />
+        <div className="drift absolute top-[12%] -left-16 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
         <div className="drift absolute top-[42%] -right-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl" style={{ animationDelay: "5s" }} />
-        <div className="drift absolute bottom-[8%] left-1/4 h-56 w-56 rounded-full bg-warm/8 blur-3xl" style={{ animationDelay: "9s" }} />
+        <div className="drift absolute bottom-[8%] left-1/4 h-56 w-56 rounded-full bg-accent/8 blur-3xl" style={{ animationDelay: "9s" }} />
       </div>
 
       {/* Top bar */}
@@ -75,11 +75,11 @@ function MeScreen() {
 
       {/* Section 0 · Identity (minimal) */}
       <section className="relative mt-6 px-6 flex flex-col items-center text-center">
-        <div className="h-20 w-20 rounded-full bg-gradient-to-br from-warm to-primary shadow-glow grid place-items-center">
-          <span className="font-display text-[28px] text-warm-foreground">L</span>
+        <div className="h-24 w-24 rounded-portrait bg-gradient-to-br from-accent-hot via-primary to-primary-bright shadow-neon grid place-items-center ring-1 ring-white/10">
+          <span className="font-extrabold text-[32px] text-white">L</span>
         </div>
-        <h1 className="mt-5 font-display text-[26px] leading-[1.15]">Lina</h1>
-        <p className="mt-3 font-display italic text-[14px] leading-relaxed text-foreground/70 max-w-[14rem]">
+        <h1 className="mt-6 text-[30px] leading-[0.95] font-extrabold tracking-[-0.02em] uppercase">Lina</h1>
+        <p className="mt-3 italic text-[14px] leading-relaxed text-foreground/70 max-w-[14rem]">
           in this city for seven months,<br />
           listening softly.
         </p>
@@ -95,7 +95,7 @@ function MeScreen() {
             aria-label={`Play ${first.song} by ${first.artist}`}
             className="mt-6 block group"
           >
-            <p className="font-display text-[22px] leading-[1.25] italic text-foreground/95 group-hover:text-warm transition-colors">
+            <p className="font-display text-[22px] leading-[1.25] italic text-foreground/95 group-hover:text-accent transition-colors">
               "{first.song}"
             </p>
             <p className="mt-1 font-display text-[14px] text-muted-foreground italic">
@@ -124,14 +124,14 @@ function MeScreen() {
             <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
               {overlap.mine.when}, you wrote:
             </p>
-            <p className="mt-3 font-display italic text-[18px] leading-relaxed text-foreground/95 group-hover:text-warm transition-colors">
+            <p className="mt-3 font-display italic text-[18px] leading-relaxed text-foreground/95 group-hover:text-accent transition-colors">
               "{overlap.mine.note}"
             </p>
 
             {/* Sync pulse — the moment of overlap */}
             <div className="my-10 flex items-center justify-center">
               <span className="pulse-ring relative h-3 w-3 rounded-full">
-                <span className="absolute inset-0 rounded-full bg-warm" />
+                <span className="absolute inset-0 rounded-full bg-accent" />
               </span>
             </div>
 
@@ -159,9 +159,9 @@ function MeScreen() {
             aria-label={`Open map at ${home.pin.label}`}
             className="mt-6 block group"
           >
-            <p className="font-display text-[22px] leading-[1.25] text-foreground/95 group-hover:text-warm transition-colors">
+            <p className="font-display text-[22px] leading-[1.25] text-foreground/95 group-hover:text-accent transition-colors">
               {home.pin.label} heard you{" "}
-              <span className="italic text-gradient-warm">{numberToWord(home.tracesCount)}</span> times.
+              <span className="italic text-gradient-neon">{numberToWord(home.tracesCount)}</span> times.
             </p>
             <p className="mt-5 font-display italic text-[15px] leading-relaxed text-foreground/75 max-w-[18rem]">
               {home.pin.mood.toLowerCase().replace(/\.$/, "")}.
@@ -188,9 +188,9 @@ function MeScreen() {
                 onClick={() => setActiveSeason(s)}
                 className={`text-[10px] font-mono uppercase tracking-[0.18em] px-2.5 py-1 rounded-full transition-all ${
                   active
-                    ? "bg-warm text-warm-foreground"
+                    ? "bg-accent text-accent-foreground"
                     : has
-                    ? "text-foreground/70 hover:text-warm"
+                    ? "text-foreground/70 hover:text-accent"
                     : "text-muted-foreground/40"
                 }`}
               >
@@ -207,13 +207,15 @@ function MeScreen() {
       {/* Section 5 · Footer */}
       <section className="relative mt-24 px-8 pb-12 text-center">
         <div className="mx-auto h-px w-16 bg-white/10" />
-        <p className="mt-8 font-display italic text-[15px] leading-relaxed text-foreground/85 max-w-[16rem] mx-auto">
-          Somewhere in the city,<br />
-          someone is reading<br />
-          a song you left behind.
+        <p className="mt-8 italic font-bold text-[18px] leading-[1.25] text-foreground/90 max-w-[16rem] mx-auto">
+          <span className="uppercase tracking-[-0.01em] block text-gradient-neon">Somewhere<br />in the city,</span>
+          <span className="block mt-3 font-medium text-foreground/75 text-[14px] leading-relaxed">
+            someone is reading<br />
+            a song you left behind.
+          </span>
         </p>
         <div className="mt-8 mx-auto h-px w-16 bg-white/10" />
-        <p className="mt-8 text-[9px] font-mono uppercase tracking-[0.32em] text-muted-foreground/70 leading-loose">
+        <p className="mt-8 text-[9px] font-semibold uppercase tracking-[0.32em] text-muted-foreground/70 leading-loose">
           Ultrasound<br />
           listening together<br />
           quietly
@@ -226,10 +228,10 @@ function MeScreen() {
 function ChapterMark({ numeral, label }: { numeral: string; label: string }) {
   return (
     <div className="flex flex-col items-center text-center">
-      <span aria-hidden className="font-display italic text-[20px] text-warm/80">
+      <span aria-hidden className="font-extrabold italic text-[22px] text-gradient-neon">
         {numeral}
       </span>
-      <span className="mt-1 text-[10px] font-mono uppercase tracking-[0.24em] text-muted-foreground">
+      <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
         {label}
       </span>
     </div>
@@ -257,7 +259,7 @@ function SeasonVignette({
         {t ? (
           <>
             <p className="font-display text-[18px] leading-[1.3] text-foreground/95">
-              <span className="italic text-warm">{copy.lead}</span>
+              <span className="italic text-accent">{copy.lead}</span>
               <br />
               {seasonNarrative(t, traces.length)}
             </p>

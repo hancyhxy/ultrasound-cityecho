@@ -20,7 +20,7 @@ export function PinnedToast({
     <div
       role="status"
       aria-live="polite"
-      className="absolute top-4 left-1/2 -translate-x-1/2 z-[60] glass-strong rounded-full px-4 py-2 border border-warm/30 shadow-warm animate-in fade-in slide-in-from-top duration-300"
+      className="absolute top-4 left-1/2 -translate-x-1/2 z-[60] glass-strong rounded-full px-4 py-2 border border-accent/30 shadow-accent animate-in fade-in slide-in-from-top duration-300"
     >
       <p className="text-[12px] font-display italic text-foreground/95 whitespace-nowrap">
         pinned at {trace.place} · just now

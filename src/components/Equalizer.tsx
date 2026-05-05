@@ -5,7 +5,7 @@ export function Equalizer({ className = "" }: { className?: string }) {
       {delays.map((d, i) => (
         <span
           key={i}
-          className="eq-bar w-[3px] rounded-full bg-warm"
+          className="eq-bar w-[3px] rounded-full bg-accent"
           style={{ animationDelay: `${d}s`, height: "100%" }}
         />
       ))}

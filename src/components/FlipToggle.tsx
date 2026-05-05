@@ -16,7 +16,7 @@ export function FlipToggle({
       {/* sliding pill */}
       <span
         aria-hidden
-        className={`absolute top-0.5 bottom-0.5 w-[50%] rounded-full bg-warm shadow-warm transition-transform duration-300 ease-out ${
+        className={`absolute top-0.5 bottom-0.5 w-[50%] rounded-full bg-accent shadow-accent transition-transform duration-300 ease-out ${
           view === "track" ? "translate-x-0" : "translate-x-full"
         }`}
       />
@@ -27,7 +27,7 @@ export function FlipToggle({
           aria-selected={view === v}
           onClick={() => onChange(v)}
           className={`relative z-10 px-3 h-7 rounded-full text-[10px] font-mono uppercase tracking-[0.18em] transition-colors ${
-            view === v ? "text-warm-foreground" : "text-muted-foreground hover:text-foreground"
+            view === v ? "text-accent-foreground" : "text-muted-foreground hover:text-foreground"
           }`}
         >
           {v}

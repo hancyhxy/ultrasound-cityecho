@@ -36,9 +36,10 @@ function MapScreen() {
   return (
     <PhoneShell>
       <div className="px-6 pt-4">
-        <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-warm">Explore</p>
-        <h1 className="mt-2 text-[30px] leading-[1.1] font-medium">
-          A city, <span className="text-gradient-warm italic">organised by feeling.</span>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-accent-hot">Explore</p>
+        <h1 className="mt-3 text-[36px] leading-[0.95] font-extrabold tracking-[-0.02em] uppercase">
+          a city,<br />
+          <span className="text-gradient-neon">by feeling</span>
         </h1>
 
         <div className="mt-5 flex gap-2">
@@ -97,29 +98,29 @@ function MapScreen() {
             >
               <div className="relative">
                 {p.hot && !active && (
-                  <span className="absolute inset-0 rounded-full bg-warm/40 animate-ping" />
+                  <span className="absolute inset-0 rounded-full bg-accent/40 animate-ping" />
                 )}
                 <span
                   className={`relative block rounded-full transition-all duration-300 ${
                     active
-                      ? "h-4 w-4 bg-warm ring-4 ring-warm/30 shadow-warm"
+                      ? "h-4 w-4 bg-accent ring-4 ring-accent/30 shadow-accent"
                       : p.hot
-                      ? "h-3 w-3 bg-warm shadow-warm group-hover:scale-125"
-                      : "h-2.5 w-2.5 bg-primary/80 group-hover:bg-warm group-hover:scale-125"
+                      ? "h-3 w-3 bg-accent shadow-accent group-hover:scale-125"
+                      : "h-2.5 w-2.5 bg-primary/80 group-hover:bg-accent group-hover:scale-125"
                   }`}
                 />
               </div>
               <div
                 className={`mt-1.5 px-2 py-0.5 rounded-md backdrop-blur-sm border transition-all ${
                   active
-                    ? "bg-warm text-warm-foreground border-warm scale-105"
+                    ? "bg-accent text-accent-foreground border-accent scale-105"
                     : "bg-background/80 border-white/10 opacity-90 group-hover:opacity-100"
                 }`}
               >
                 <p className="text-[9px] font-medium leading-tight whitespace-nowrap">{p.label}</p>
                 <p
                   className={`text-[8px] font-mono leading-tight ${
-                    active ? "text-warm-foreground/80" : "text-warm"
+                    active ? "text-accent-foreground/80" : "text-accent"
                   }`}
                 >
                   {p.count} traces
@@ -137,14 +138,14 @@ function MapScreen() {
           }}
         >
           <div className="pulse-ring relative h-4 w-4 rounded-full">
-            <span className="absolute inset-1 rounded-full bg-warm shadow-warm" />
+            <span className="absolute inset-1 rounded-full bg-accent shadow-accent" />
           </div>
         </div>
       </div>
 
       {!selected && (
         <section className="mx-6 mt-5 rounded-2xl p-4 glass border border-white/5">
-          <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-warm">Tap a pin</p>
+          <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-accent">Tap a pin</p>
           <p className="mt-2 text-[14px] leading-snug text-muted-foreground">
             Each place holds its own quiet listening. Tap to hear what plays here, right now.
           </p>

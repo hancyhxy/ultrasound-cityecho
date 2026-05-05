@@ -47,8 +47,8 @@ export function LocationDrawer({
       role="dialog"
       aria-label={`${pin.label} location playlist`}
     >
-      <div className="relative h-full rounded-t-[28px] overflow-hidden glass-strong border border-warm/20 shadow-glow animate-in slide-in-from-bottom-4 fade-in duration-300 flex flex-col">
-        <div aria-hidden className="absolute -top-16 -right-16 h-44 w-44 rounded-full bg-warm/40 blur-3xl pointer-events-none" />
+      <div className="relative h-full rounded-t-[28px] overflow-hidden glass-strong border border-accent/20 shadow-glow animate-in slide-in-from-bottom-4 fade-in duration-300 flex flex-col">
+        <div aria-hidden className="absolute -top-16 -right-16 h-44 w-44 rounded-full bg-accent/40 blur-3xl pointer-events-none" />
 
         {/* drag handle / snap toggle */}
         <button
@@ -56,7 +56,7 @@ export function LocationDrawer({
           aria-label={snap === "half" ? "Expand drawer" : "Collapse drawer"}
           className="relative w-full pt-3 pb-1 flex flex-col items-center gap-1 group"
         >
-          <span className="block h-1 w-10 rounded-full bg-white/30 group-hover:bg-warm/60 transition-colors" />
+          <span className="block h-1 w-10 rounded-full bg-white/30 group-hover:bg-accent/60 transition-colors" />
           <span className="text-[9px] font-mono uppercase tracking-[0.18em] text-muted-foreground/60 flex items-center gap-1">
             {snap === "half" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             {snap === "half" ? "swipe up for full list" : "collapse"}
@@ -66,7 +66,7 @@ export function LocationDrawer({
         <div className="relative px-5 pt-1 pb-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-warm">
+              <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-accent">
                 {pin.count} traces · here
               </p>
               <h3 className="mt-1 font-display text-[22px] leading-tight">{pin.label}</h3>
@@ -84,7 +84,7 @@ export function LocationDrawer({
           <div className="mt-3 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-xs text-foreground/80">
               <Equalizer />
-              <Users className="h-3.5 w-3.5 text-warm" />
+              <Users className="h-3.5 w-3.5 text-accent" />
               <span>{pin.listening} listening together</span>
             </div>
           </div>
@@ -112,7 +112,7 @@ export function LocationDrawer({
               return (
                 <li
                   key={i}
-                  className="flex items-center gap-2 px-2 py-2 rounded-xl bg-background/40 border border-white/5 hover:border-warm/20 transition-colors"
+                  className="flex items-center gap-2 px-2 py-2 rounded-xl bg-background/40 border border-white/5 hover:border-accent/20 transition-colors"
                 >
                   <Link
                     to="/playing"
@@ -132,7 +132,7 @@ export function LocationDrawer({
                     onClick={() => onQuickSave(i)}
                     aria-label={`Save ${t.song} to ${pin.label} playlist`}
                     className={`h-7 w-7 grid place-items-center rounded-full transition-colors shrink-0 ${
-                      justSaved ? "bg-warm text-warm-foreground" : "bg-white/5 text-muted-foreground hover:bg-warm/20 hover:text-warm"
+                      justSaved ? "bg-accent text-accent-foreground" : "bg-white/5 text-muted-foreground hover:bg-accent/20 hover:text-accent"
                     }`}
                   >
                     {justSaved ? <Heart className="h-3.5 w-3.5" fill="currentColor" /> : <Plus className="h-3.5 w-3.5" />}
@@ -155,7 +155,7 @@ export function LocationDrawer({
           <Link
             to="/playing"
             search={{ song: pin.songs[0]?.song, artist: pin.songs[0]?.artist, loc: pin.id }}
-            className="flex-1 h-11 rounded-2xl bg-warm text-warm-foreground font-medium shadow-warm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+            className="flex-1 h-11 rounded-2xl bg-accent text-accent-foreground font-medium shadow-accent flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
           >
             <Play className="h-4 w-4" fill="currentColor" />
             Tune in to {pin.label}

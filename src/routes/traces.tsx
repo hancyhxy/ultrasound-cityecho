@@ -87,9 +87,10 @@ function TracesScreen() {
   return (
     <PhoneShell>
       <header className="px-6 pt-4">
-        <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-warm">Discover</p>
-        <h1 className="mt-2 text-[28px] leading-[1.1] font-medium">
-          Strangers, <span className="italic text-gradient-warm">song by song.</span>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-accent-hot">Discover</p>
+        <h1 className="mt-3 text-[34px] leading-[0.95] font-extrabold tracking-[-0.02em] uppercase">
+          strangers,<br />
+          <span className="text-gradient-neon">song by song</span>
         </h1>
       </header>
 
@@ -105,14 +106,14 @@ function TracesScreen() {
                 aria-label="Pin a new trace"
               >
                 <span className="relative h-16 w-16 rounded-full grid place-items-center transition-transform group-hover:scale-105 p-[2px] bg-white/10">
-                  <span className="h-full w-full rounded-full grid place-items-center font-display text-[20px] bg-gradient-to-br from-warm to-primary text-warm-foreground border-2 border-background">
+                  <span className="h-full w-full rounded-full grid place-items-center font-display text-[20px] bg-gradient-to-br from-accent to-primary text-accent-foreground border-2 border-background">
                     L
                   </span>
-                  <span className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-warm border-2 border-background grid place-items-center">
-                    <Plus className="h-3 w-3 text-warm-foreground" strokeWidth={2.8} />
+                  <span className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-accent border-2 border-background grid place-items-center">
+                    <Plus className="h-3 w-3 text-accent-foreground" strokeWidth={2.8} />
                   </span>
                 </span>
-                <span className="text-[10px] font-mono italic text-warm/90">your turn</span>
+                <span className="text-[10px] font-mono italic text-accent/90">your turn</span>
               </button>
             ) : (
               <button
@@ -123,7 +124,7 @@ function TracesScreen() {
               >
                 <span
                   className={`relative h-16 w-16 rounded-full grid place-items-center transition-transform group-hover:scale-105 ${
-                    s.hasNew ? "p-[2px] bg-gradient-to-tr from-warm via-primary to-warm" : "p-[2px] bg-white/10"
+                    s.hasNew ? "p-[2px] bg-gradient-to-tr from-accent via-primary to-accent" : "p-[2px] bg-white/10"
                   }`}
                 >
                   <span
@@ -133,7 +134,7 @@ function TracesScreen() {
                     {s.initial}
                   </span>
                   {s.hasNew && (
-                    <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-warm border-2 border-background" />
+                    <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-accent border-2 border-background" />
                   )}
                 </span>
                 <span className="text-[10px] font-mono text-muted-foreground">
@@ -158,8 +159,8 @@ function TracesScreen() {
             }}
             className={`rounded-2xl px-4 py-3 glass border transition-all ${
               highlight === t.id
-                ? "border-warm shadow-warm bg-warm/5"
-                : "border-white/5 hover:border-warm/20"
+                ? "border-accent shadow-accent bg-accent/5"
+                : "border-white/5 hover:border-accent/20"
             }`}
           >
             <div className="flex items-center gap-2.5">
@@ -178,15 +179,15 @@ function TracesScreen() {
                     <Link
                       to="/"
                       search={{ pin: t.locationId }}
-                      className="flex items-center gap-1 truncate hover:text-warm transition-colors"
+                      className="flex items-center gap-1 truncate hover:text-accent transition-colors"
                       aria-label={`Open map at ${t.place}`}
                     >
-                      <MapPin className="h-2.5 w-2.5 text-warm" />
+                      <MapPin className="h-2.5 w-2.5 text-accent" />
                       <span className="truncate">{t.place}</span>
                     </Link>
                   ) : (
                     <span className="flex items-center gap-1 truncate">
-                      <MapPin className="h-2.5 w-2.5 text-warm" />
+                      <MapPin className="h-2.5 w-2.5 text-accent" />
                       <span className="truncate">{t.place}</span>
                     </span>
                   )}
@@ -194,17 +195,17 @@ function TracesScreen() {
                   <Link
                     to="/playing"
                     search={{ song: t.forSong.song, artist: t.forSong.artist, loc: t.locationId }}
-                    className="group/song flex items-center gap-1 truncate hover:text-warm transition-colors"
+                    className="group/song flex items-center gap-1 truncate hover:text-accent transition-colors"
                     aria-label={`Play ${t.forSong.song} by ${t.forSong.artist}`}
                   >
-                    <Play className="h-2.5 w-2.5 text-warm shrink-0 opacity-70 group-hover/song:opacity-100" fill="currentColor" />
+                    <Play className="h-2.5 w-2.5 text-accent shrink-0 opacity-70 group-hover/song:opacity-100" fill="currentColor" />
                     <span className="truncate">
                       {t.forSong.song} — {t.forSong.artist}
                     </span>
                   </Link>
                 </div>
               </div>
-              <span className="shrink-0 text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-warm/15 text-warm border border-warm/20">
+              <span className="shrink-0 text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-accent/15 text-accent border border-accent/20">
                 {t.mood}
               </span>
             </div>
@@ -259,15 +260,15 @@ function UserStoryModal({ user, onClose }: { user: StoryUser; onClose: () => voi
                   <Link
                     to="/"
                     search={{ pin: t.locationId }}
-                    className="flex items-center gap-1.5 hover:text-warm transition-colors"
+                    className="flex items-center gap-1.5 hover:text-accent transition-colors"
                     aria-label={`Open map at ${t.place}`}
                   >
-                    <MapPin className="h-3 w-3 text-warm" />
+                    <MapPin className="h-3 w-3 text-accent" />
                     <span>{t.place}</span>
                   </Link>
                 ) : (
                   <div className="flex items-center gap-1.5">
-                    <MapPin className="h-3 w-3 text-warm" />
+                    <MapPin className="h-3 w-3 text-accent" />
                     <span>{t.place}</span>
                   </div>
                 )}
@@ -278,18 +279,18 @@ function UserStoryModal({ user, onClose }: { user: StoryUser; onClose: () => voi
                 <Link
                   to="/playing"
                   search={{ song: t.forSong.song, artist: t.forSong.artist, loc: t.locationId }}
-                  className="group/song min-w-0 flex items-center gap-2 rounded-xl -mx-1.5 px-1.5 py-1 hover:bg-warm/10 transition-colors"
+                  className="group/song min-w-0 flex items-center gap-2 rounded-xl -mx-1.5 px-1.5 py-1 hover:bg-accent/10 transition-colors"
                   aria-label={`Play ${t.forSong.song} by ${t.forSong.artist}`}
                 >
-                  <span className="shrink-0 h-7 w-7 rounded-full grid place-items-center bg-warm/15 border border-warm/30 group-hover/song:bg-warm group-hover/song:border-warm transition-colors">
-                    <Play className="h-3 w-3 text-warm group-hover/song:text-warm-foreground" fill="currentColor" />
+                  <span className="shrink-0 h-7 w-7 rounded-full grid place-items-center bg-accent/15 border border-accent/30 group-hover/song:bg-accent group-hover/song:border-accent transition-colors">
+                    <Play className="h-3 w-3 text-accent group-hover/song:text-accent-foreground" fill="currentColor" />
                   </span>
                   <div className="min-w-0">
                     <p className="text-[13px] font-medium truncate">{t.forSong.song}</p>
                     <p className="text-[11px] text-muted-foreground truncate">{t.forSong.artist}</p>
                   </div>
                 </Link>
-                <span className="shrink-0 text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-warm/15 text-warm border border-warm/20">
+                <span className="shrink-0 text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-accent/15 text-accent border border-accent/20">
                   {t.mood}
                 </span>
               </div>
@@ -403,7 +404,7 @@ function TracesComposer({
                 if (hint) setHint(null);
               }}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                p.id === pinId ? "bg-warm text-warm-foreground" : "bg-white/5 text-foreground/70 hover:bg-white/10"
+                p.id === pinId ? "bg-accent text-accent-foreground" : "bg-white/5 text-foreground/70 hover:bg-white/10"
               }`}
             >
               {p.label}
@@ -422,7 +423,7 @@ function TracesComposer({
             }}
             placeholder="song"
             maxLength={80}
-            className="rounded-2xl bg-background/50 border border-white/10 px-4 py-3 text-[14px] focus:outline-none focus:border-warm/40 placeholder:text-muted-foreground/60"
+            className="rounded-2xl bg-background/50 border border-white/10 px-4 py-3 text-[14px] focus:outline-none focus:border-accent/40 placeholder:text-muted-foreground/60"
           />
           <input
             value={artist}
@@ -432,7 +433,7 @@ function TracesComposer({
             }}
             placeholder="artist"
             maxLength={60}
-            className="rounded-2xl bg-background/50 border border-white/10 px-4 py-3 text-[14px] focus:outline-none focus:border-warm/40 placeholder:text-muted-foreground/60"
+            className="rounded-2xl bg-background/50 border border-white/10 px-4 py-3 text-[14px] focus:outline-none focus:border-accent/40 placeholder:text-muted-foreground/60"
           />
         </div>
 
@@ -446,7 +447,7 @@ function TracesComposer({
           }}
           placeholder="A stranger in this seat tomorrow will read it."
           maxLength={140}
-          className="w-full h-24 rounded-2xl bg-background/50 border border-white/10 p-4 text-[14px] resize-none focus:outline-none focus:border-warm/40 placeholder:text-muted-foreground/60"
+          className="w-full h-24 rounded-2xl bg-background/50 border border-white/10 p-4 text-[14px] resize-none focus:outline-none focus:border-accent/40 placeholder:text-muted-foreground/60"
         />
         <div className="mt-1 text-[10px] font-mono text-muted-foreground text-right">{note.length}/140</div>
 
@@ -461,7 +462,7 @@ function TracesComposer({
                 if (hint) setHint(null);
               }}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                mood === m ? "bg-warm text-warm-foreground" : "bg-white/5 text-foreground/70 hover:bg-white/10"
+                mood === m ? "bg-accent text-accent-foreground" : "bg-white/5 text-foreground/70 hover:bg-white/10"
               }`}
             >
               {m}
@@ -470,12 +471,12 @@ function TracesComposer({
         </div>
 
         {hint && (
-          <p className="mt-3 text-[11px] font-mono italic text-warm/80">{hint}</p>
+          <p className="mt-3 text-[11px] font-mono italic text-accent/80">{hint}</p>
         )}
 
         <button
           onClick={handleSubmit}
-          className="mt-6 w-full h-12 rounded-2xl bg-warm text-warm-foreground font-medium hover:opacity-90 transition-opacity shadow-warm"
+          className="mt-6 w-full h-12 rounded-2xl bg-accent text-accent-foreground font-medium hover:opacity-90 transition-opacity shadow-accent"
         >
           Pin to {selectedPin?.label ?? "this place"}
         </button>

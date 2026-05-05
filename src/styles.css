@@ -5,9 +5,10 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * City Echo / Ultrasound design system
- * Mood: ambient, cinematic, late-night, intimate
- * Palette: deep midnight indigo bg, soft violet mid, warm amber/coral accent
+ * Ultrasound CityEcho — design system v2 (ITER-7)
+ * Mood: late-night friend's room, neon-lit, social, warm
+ * Palette: plum-black base, neon purple → magenta gradient, hot-pink highlight
+ * See docs/design.md for the full rule book.
  */
 
 @theme inline {
@@ -25,12 +26,14 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-bright: var(--primary-bright);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-hot: var(--accent-hot);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
@@ -38,73 +41,90 @@
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
   --color-glow: var(--glow);
-  --color-warm: var(--warm);
-  --color-warm-foreground: var(--warm-foreground);
+  --color-warm: var(--accent);
+  --color-warm-foreground: var(--accent-foreground);
   --color-surface: var(--surface);
   --color-surface-elevated: var(--surface-elevated);
-  --font-display: "Fraunces", Georgia, serif;
+  --font-display: "Inter", system-ui, sans-serif;
   --font-sans: "Inter", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-mono: "Inter", system-ui, sans-serif;
 }
 
 :root {
-  --radius: 0.875rem;
+  --radius: 1rem;
 
-  /* Base — deep midnight */
-  --background: oklch(0.16 0.04 270);
-  --foreground: oklch(0.96 0.01 80);
+  /* Pill / card radius ramp (design.md §4) */
+  --radius-pill: 9999px;
+  --radius-card-lg: 1.5rem;
+  --radius-card-xl: 2rem;
+  --radius-portrait: 2.5rem;
 
-  --surface: oklch(0.21 0.045 272);
-  --surface-elevated: oklch(0.26 0.05 274);
+  /* Base — plum-black (was midnight-indigo) */
+  --background: oklch(0.13 0.04 295);
+  --foreground: oklch(0.97 0.005 290);
 
-  --card: oklch(0.21 0.045 272);
-  --card-foreground: oklch(0.96 0.01 80);
+  --surface: oklch(0.18 0.05 295);
+  --surface-elevated: oklch(0.23 0.06 295);
 
-  --popover: oklch(0.21 0.045 272);
-  --popover-foreground: oklch(0.96 0.01 80);
+  --card: oklch(0.18 0.05 295);
+  --card-foreground: oklch(0.97 0.005 290);
 
-  /* Primary — soft violet */
-  --primary: oklch(0.72 0.16 295);
-  --primary-foreground: oklch(0.16 0.04 270);
-  --glow: oklch(0.78 0.18 300);
+  --popover: oklch(0.18 0.05 295);
+  --popover-foreground: oklch(0.97 0.005 290);
 
-  /* Warm — amber accent (the "human" tone) */
-  --warm: oklch(0.82 0.13 65);
-  --warm-foreground: oklch(0.18 0.04 60);
+  /* Primary — neon purple */
+  --primary: oklch(0.62 0.25 305);
+  --primary-foreground: oklch(0.13 0.04 295);
+  --glow: oklch(0.72 0.27 320);
 
-  --secondary: oklch(0.28 0.05 275);
-  --secondary-foreground: oklch(0.92 0.02 80);
+  /* Primary-bright — magenta endpoint for gradients/glow */
+  --primary-bright: oklch(0.72 0.27 320);
 
-  --muted: oklch(0.24 0.04 273);
-  --muted-foreground: oklch(0.68 0.03 270);
-
+  /* Accent — amber retained for sparing "human" punctuation
+     (formerly named --warm; --color-warm now aliases here) */
   --accent: oklch(0.82 0.13 65);
   --accent-foreground: oklch(0.18 0.04 60);
 
+  /* Hot accent — pink, for highlight strokes (new) */
+  --accent-hot: oklch(0.66 0.28 12);
+
+  --secondary: oklch(0.26 0.06 295);
+  --secondary-foreground: oklch(0.94 0.02 290);
+
+  --muted: oklch(0.21 0.04 295);
+  --muted-foreground: oklch(0.62 0.04 295);
+
   --destructive: oklch(0.64 0.21 25);
-  --destructive-foreground: oklch(0.98 0.01 80);
+  --destructive-foreground: oklch(0.98 0.01 290);
 
-  --border: oklch(0.32 0.05 275 / 0.6);
-  --input: oklch(0.28 0.05 275);
-  --ring: oklch(0.72 0.16 295);
+  --border: oklch(0.32 0.05 295 / 0.6);
+  --input: oklch(0.28 0.05 295);
+  --ring: oklch(0.62 0.25 305);
 
-  --gradient-aurora: radial-gradient(at 20% 10%, oklch(0.45 0.18 300 / 0.55), transparent 55%),
-                     radial-gradient(at 85% 20%, oklch(0.52 0.15 250 / 0.45), transparent 60%),
-                     radial-gradient(at 60% 95%, oklch(0.6 0.14 60 / 0.35), transparent 55%);
-  --gradient-warm: linear-gradient(135deg, oklch(0.82 0.13 65), oklch(0.74 0.16 35));
-  --gradient-violet: linear-gradient(135deg, oklch(0.72 0.16 295), oklch(0.55 0.2 270));
-  --gradient-card: linear-gradient(160deg, oklch(0.24 0.05 275 / 0.9), oklch(0.18 0.04 270 / 0.9));
+  /* Gradients */
+  --gradient-night: radial-gradient(at 18% 8%, oklch(0.45 0.22 305 / 0.55), transparent 55%),
+                    radial-gradient(at 82% 18%, oklch(0.5 0.25 320 / 0.45), transparent 60%),
+                    radial-gradient(at 65% 92%, oklch(0.4 0.18 280 / 0.4), transparent 55%);
+  --gradient-aurora: var(--gradient-night); /* alias for any legacy callsites */
+  --gradient-neon: linear-gradient(135deg, oklch(0.62 0.25 305), oklch(0.72 0.27 320));
+  --gradient-warm: var(--gradient-neon); /* alias for legacy `text-gradient-warm` */
+  --gradient-violet: linear-gradient(135deg, oklch(0.55 0.25 290), oklch(0.72 0.27 320));
+  --gradient-card: linear-gradient(160deg, oklch(0.22 0.06 295 / 0.92), oklch(0.16 0.04 295 / 0.92));
 
-  --shadow-glow: 0 0 60px -10px oklch(0.72 0.18 295 / 0.55);
-  --shadow-warm: 0 10px 40px -12px oklch(0.74 0.16 35 / 0.5);
+  /* Shadows */
+  --shadow-neon: 0 0 32px -2px oklch(0.62 0.27 305 / 0.55),
+                 0 0 64px -8px oklch(0.72 0.27 320 / 0.35);
+  --shadow-glow: var(--shadow-neon); /* alias */
+  --shadow-warm: 0 10px 30px -12px oklch(0.7 0.22 320 / 0.5);
+  --shadow-accent: var(--shadow-warm);
   --shadow-soft: 0 12px 30px -14px oklch(0 0 0 / 0.6);
 
   --transition-smooth: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .dark {
-  --background: oklch(0.16 0.04 270);
-  --foreground: oklch(0.96 0.01 80);
+  --background: oklch(0.13 0.04 295);
+  --foreground: oklch(0.97 0.005 290);
 }
 
 @layer base {
@@ -118,30 +138,37 @@
     -webkit-font-smoothing: antialiased;
   }
   body {
-    background-image: var(--gradient-aurora);
+    background-image: var(--gradient-night);
     background-attachment: fixed;
     min-height: 100vh;
   }
   h1, h2, h3 {
     font-family: var(--font-display);
+    font-weight: 800;
     letter-spacing: -0.02em;
   }
 }
 
 @layer utilities {
   .glass {
-    background: oklch(0.22 0.05 275 / 0.55);
+    background: oklch(0.22 0.06 295 / 0.55);
     backdrop-filter: blur(20px) saturate(140%);
     -webkit-backdrop-filter: blur(20px) saturate(140%);
     border: 1px solid oklch(1 0 0 / 0.06);
   }
   .glass-strong {
-    background: oklch(0.2 0.05 273 / 0.78);
+    background: oklch(0.2 0.06 295 / 0.78);
     backdrop-filter: blur(28px) saturate(160%);
     border: 1px solid oklch(1 0 0 / 0.08);
   }
+  .text-gradient-neon {
+    background: var(--gradient-neon);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
   .text-gradient-warm {
-    background: var(--gradient-warm);
+    background: var(--gradient-neon);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -152,11 +179,19 @@
     background-clip: text;
     color: transparent;
   }
-  .shadow-glow { box-shadow: var(--shadow-glow); }
+  .shadow-neon { box-shadow: var(--shadow-neon); }
+  .shadow-glow { box-shadow: var(--shadow-neon); }
   .shadow-warm { box-shadow: var(--shadow-warm); }
   .shadow-soft { box-shadow: var(--shadow-soft); }
-  .bg-aurora { background-image: var(--gradient-aurora); }
+  .bg-gradient-night { background-image: var(--gradient-night); }
+  .bg-gradient-neon { background-image: var(--gradient-neon); }
+  .bg-aurora { background-image: var(--gradient-night); }
   .bg-card-gradient { background-image: var(--gradient-card); }
+
+  .rounded-pill { border-radius: var(--radius-pill); }
+  .rounded-card-lg { border-radius: var(--radius-card-lg); }
+  .rounded-card-xl { border-radius: var(--radius-card-xl); }
+  .rounded-portrait { border-radius: var(--radius-portrait); }
 
   /* 3D flip primitives — used by Playing page collage */
   .perspective-1800 { perspective: 1800px; }
@@ -180,7 +215,7 @@
   position: absolute;
   inset: 0;
   border-radius: 9999px;
-  border: 1px solid var(--warm);
+  border: 1px solid var(--primary-bright);
   animation: pulse-ring 2.4s var(--transition-smooth) infinite;
 }
 .pulse-ring::after { animation-delay: 1.2s; }

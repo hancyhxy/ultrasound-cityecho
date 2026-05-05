@@ -68,7 +68,7 @@ function PlayingScreen() {
         </Link>
         <div className="text-center">
           <p className="text-[9px] font-mono uppercase tracking-[0.18em] text-muted-foreground">Listening at</p>
-          <p className="text-xs text-warm font-medium">{location.label}</p>
+          <p className="text-xs text-accent font-medium">{location.label}</p>
         </div>
         <FlipToggle view={view} onChange={handleFlip} />
       </div>
@@ -119,8 +119,8 @@ function TrackFace({
   return (
     <div className="grid grid-cols-3 gap-2 px-2">
       <div className="col-span-2 row-span-2 relative aspect-square rounded-3xl overflow-hidden shadow-glow border border-white/10">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary via-warm/60 to-background" />
-        <div aria-hidden className="absolute -top-10 -left-10 h-56 w-56 rounded-full bg-warm/50 blur-3xl drift" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent/60 to-background" />
+        <div aria-hidden className="absolute -top-10 -left-10 h-56 w-56 rounded-full bg-accent/50 blur-3xl drift" />
         <div aria-hidden className="absolute -bottom-12 -right-12 h-60 w-60 rounded-full bg-primary/60 blur-3xl drift" style={{ animationDelay: "4s" }} />
       </div>
 
@@ -129,24 +129,24 @@ function TrackFace({
         <p className="text-[12px] font-display leading-tight italic">{location.mood.split(",")[0]}</p>
         <div className="mt-1 flex flex-wrap gap-1">
           {location.tags.slice(0, 2).map((t) => (
-            <span key={t} className="text-[8px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-warm/15 text-warm border border-warm/20">
+            <span key={t} className="text-[8px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-accent/15 text-accent border border-accent/20">
               {t}
             </span>
           ))}
         </div>
       </div>
 
-      <div className="col-span-1 rounded-2xl glass-strong border border-warm/20 p-3 flex flex-col items-start justify-center gap-1.5">
+      <div className="col-span-1 rounded-2xl glass-strong border border-accent/20 p-3 flex flex-col items-start justify-center gap-1.5">
         <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full rounded-full bg-warm animate-ping opacity-70" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-warm" />
+          <span className="absolute inline-flex h-full w-full rounded-full bg-accent animate-ping opacity-70" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
         </span>
         <p className="font-display text-[18px] leading-none">{location.listening}</p>
         <p className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground">here, now</p>
       </div>
 
       <div className="col-span-1 rounded-2xl bg-card-gradient border border-white/10 p-3 flex flex-col justify-center gap-1">
-        <MapPin className="h-3.5 w-3.5 text-warm" />
+        <MapPin className="h-3.5 w-3.5 text-accent" />
         <p className="text-[11px] font-medium leading-tight">{location.label}</p>
         <p className="text-[8px] font-mono uppercase tracking-wider text-muted-foreground">{location.count} traces</p>
       </div>
@@ -156,20 +156,20 @@ function TrackFace({
         <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">streaming</span>
       </div>
 
-      <div className="col-span-3 rounded-2xl bg-card-gradient border border-warm/20 p-4 shadow-glow">
+      <div className="col-span-3 rounded-2xl bg-card-gradient border border-accent/20 p-4 shadow-glow">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h1 className="font-display text-[20px] leading-[1.1] font-medium truncate">{song}</h1>
             <p className="mt-0.5 text-[12px] text-muted-foreground truncate">{artist}</p>
           </div>
-          <button className="h-9 w-9 grid place-items-center rounded-full glass hover:bg-warm/20 transition-colors shrink-0" aria-label="Like">
+          <button className="h-9 w-9 grid place-items-center rounded-full glass hover:bg-accent/20 transition-colors shrink-0" aria-label="Like">
             <Heart className="h-4 w-4" />
           </button>
         </div>
 
         <div className="mt-3">
           <div className="h-1 rounded-full bg-white/10 overflow-hidden">
-            <div className="h-full w-[42%] bg-gradient-to-r from-warm to-primary rounded-full" />
+            <div className="h-full w-[42%] bg-gradient-to-r from-accent to-primary rounded-full" />
           </div>
           <div className="mt-1.5 flex justify-between text-[9px] font-mono text-muted-foreground">
             <span>1:48</span>
@@ -178,13 +178,13 @@ function TrackFace({
         </div>
 
         <div className="mt-3 flex items-center justify-center gap-6">
-          <button className="text-foreground/80 hover:text-warm transition-colors" aria-label="Previous">
+          <button className="text-foreground/80 hover:text-accent transition-colors" aria-label="Previous">
             <SkipBack className="h-5 w-5" fill="currentColor" />
           </button>
-          <button className="h-12 w-12 rounded-full bg-warm shadow-warm grid place-items-center hover:scale-105 transition-transform" aria-label="Pause">
-            <Pause className="h-5 w-5 text-warm-foreground" fill="currentColor" />
+          <button className="h-12 w-12 rounded-full bg-accent shadow-accent grid place-items-center hover:scale-105 transition-transform" aria-label="Pause">
+            <Pause className="h-5 w-5 text-accent-foreground" fill="currentColor" />
           </button>
-          <button className="text-foreground/80 hover:text-warm transition-colors" aria-label="Next">
+          <button className="text-foreground/80 hover:text-accent transition-colors" aria-label="Next">
             <SkipForward className="h-5 w-5" fill="currentColor" />
           </button>
         </div>
@@ -211,9 +211,9 @@ function StoryFace({
 
   return (
     <div className="grid grid-cols-3 gap-2 px-2">
-      <div className="col-span-3 rounded-3xl bg-card-gradient border border-warm/30 p-5 shadow-glow relative overflow-hidden">
-        <div aria-hidden className="absolute -top-8 -right-8 h-32 w-32 bg-warm/30 rounded-full blur-3xl" />
-        <Quote className="h-5 w-5 text-warm" />
+      <div className="col-span-3 rounded-3xl bg-card-gradient border border-accent/30 p-5 shadow-glow relative overflow-hidden">
+        <div aria-hidden className="absolute -top-8 -right-8 h-32 w-32 bg-accent/30 rounded-full blur-3xl" />
+        <Quote className="h-5 w-5 text-accent" />
         {heroTrace ? (
           <>
             <p className="mt-3 text-[15px] leading-relaxed italic text-foreground/95">
@@ -239,8 +239,8 @@ function StoryFace({
       </div>
 
       <div className="col-span-1 row-span-2 relative aspect-square rounded-2xl overflow-hidden border border-white/10">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary via-warm/60 to-background" />
-        <div aria-hidden className="absolute -top-4 -left-4 h-20 w-20 bg-warm/40 rounded-full blur-2xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent/60 to-background" />
+        <div aria-hidden className="absolute -top-4 -left-4 h-20 w-20 bg-accent/40 rounded-full blur-2xl" />
         <div className="absolute inset-0 p-2.5 flex flex-col justify-end">
           <p className="text-[10px] font-display font-medium leading-tight text-foreground/95 line-clamp-2">{song}</p>
           <p className="text-[8px] font-mono text-muted-foreground truncate">{artist}</p>
@@ -265,9 +265,9 @@ function StoryFace({
       </div>
 
       <div className="col-span-2 rounded-2xl glass border border-white/10 p-3 flex flex-wrap gap-1.5 items-center">
-        <span className="text-[9px] font-mono uppercase tracking-[0.18em] text-warm pr-1">moods here</span>
+        <span className="text-[9px] font-mono uppercase tracking-[0.18em] text-accent pr-1">moods here</span>
         {location.tags.map((t) => (
-          <span key={t} className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-warm/15 text-warm border border-warm/20">
+          <span key={t} className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-accent/15 text-accent border border-accent/20">
             #{t}
           </span>
         ))}
@@ -286,9 +286,9 @@ function StoryFace({
 
       <button
         onClick={onLeaveTrace}
-        className="col-span-3 rounded-2xl p-4 glass-strong border border-warm/30 hover:border-warm transition-colors text-left flex items-center gap-3"
+        className="col-span-3 rounded-2xl p-4 glass-strong border border-accent/30 hover:border-accent transition-colors text-left flex items-center gap-3"
       >
-        <MessageCircle className="h-5 w-5 text-warm" />
+        <MessageCircle className="h-5 w-5 text-accent" />
         <div className="flex-1">
           <p className="text-[14px] font-medium">Leave a trace</p>
           <p className="text-[11px] text-muted-foreground">One sentence. No name. Stays in this room.</p>
@@ -366,7 +366,7 @@ function TraceModal({
           }}
           placeholder="What did this song hold for you, here?"
           maxLength={140}
-          className="mt-5 w-full h-24 rounded-2xl bg-background/50 border border-white/10 p-4 text-[14px] resize-none focus:outline-none focus:border-warm/40 placeholder:text-muted-foreground/60"
+          className="mt-5 w-full h-24 rounded-2xl bg-background/50 border border-white/10 p-4 text-[14px] resize-none focus:outline-none focus:border-accent/40 placeholder:text-muted-foreground/60"
         />
         <div className="mt-1 text-[10px] font-mono text-muted-foreground text-right">{text.length}/140</div>
 
@@ -380,7 +380,7 @@ function TraceModal({
                 if (hint) setHint(null);
               }}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                selected === m ? "bg-warm text-warm-foreground" : "bg-white/5 text-foreground/70 hover:bg-white/10"
+                selected === m ? "bg-accent text-accent-foreground" : "bg-white/5 text-foreground/70 hover:bg-white/10"
               }`}
             >
               {m}
@@ -389,12 +389,12 @@ function TraceModal({
         </div>
 
         {hint && (
-          <p className="mt-3 text-[11px] font-mono italic text-warm/80">{hint}</p>
+          <p className="mt-3 text-[11px] font-mono italic text-accent/80">{hint}</p>
         )}
 
         <button
           onClick={handleSubmit}
-          className="mt-6 w-full h-12 rounded-2xl bg-warm text-warm-foreground font-medium hover:opacity-90 transition-opacity shadow-warm"
+          className="mt-6 w-full h-12 rounded-2xl bg-accent text-accent-foreground font-medium hover:opacity-90 transition-opacity shadow-accent"
         >
           Pin to this place
         </button>

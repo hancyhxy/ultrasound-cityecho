@@ -29,7 +29,7 @@ export function DebugNav() {
             to={to}
             className={`px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider transition-colors ${
               active
-                ? "bg-warm text-warm-foreground"
+                ? "bg-accent text-accent-foreground"
                 : "bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-foreground"
             }`}
           >
