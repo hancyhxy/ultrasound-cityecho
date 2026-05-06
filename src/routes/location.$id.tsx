@@ -37,25 +37,12 @@ function LocationScreen() {
 
   return (
     <PhoneShell backdropStyle={backdropStyle}>
-      {/* Top bar — back arrow + PLAYLIST/STORY pill toggle (airbuds-style).
-          PLAYLIST is active (we're on it); STORY navigates to /playing?view=story. */}
-      <div className="relative z-10 px-5 pt-3 flex items-center justify-between">
+      {/* Top bar — back arrow only. STORY toggle removed along with the
+          /playing STORY face; this page is the place's playlist, full stop. */}
+      <div className="relative z-10 px-5 pt-3">
         <Link to="/" className="h-9 w-9 grid place-items-center rounded-full bg-white/10 backdrop-blur">
           <ChevronDown className="h-4 w-4 text-white" />
         </Link>
-        <div className="inline-flex items-center gap-0.5 h-9 rounded-pill bg-black/30 backdrop-blur p-0.5">
-          <span className="inline-flex items-center h-8 px-3.5 rounded-pill bg-white text-zinc-900 font-extrabold uppercase tracking-[0.16em] text-[11px]">
-            Playlist
-          </span>
-          <Link
-            to="/playing"
-            search={{ loc: pin.id, view: "story" as const }}
-            aria-label={`Open ${pin.label} story`}
-            className="inline-flex items-center h-8 px-3.5 rounded-pill text-white/70 font-bold uppercase tracking-[0.16em] text-[11px] hover:text-white transition-colors"
-          >
-            Story
-          </Link>
-        </div>
       </div>
 
       {/* Hero — 2×2 cover grid + place name + mood */}

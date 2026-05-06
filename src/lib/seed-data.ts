@@ -1118,3 +1118,17 @@ export const moodGradient: Record<string, string> = {
   focus: "from-primary/50 to-primary/10",
   warm: "from-accent to-primary/40",
 };
+
+// User avatar mock — deterministic mapping from userId to one of 8 real
+// portrait files in /public/user_profile_img. Same userId always returns
+// the same avatar across pages (story bubbles, danmaku, modals).
+const USER_AVATAR_COUNT = 8;
+function hashStr(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+export function getUserAvatar(userId: string): string {
+  const idx = (hashStr(userId) % USER_AVATAR_COUNT) + 1;
+  return `/user_profile_img/user-${idx}.png`;
+}

@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Quote } from "lucide-react";
-import type { Trace } from "@/lib/seed-data";
+import { getUserAvatar, type Trace } from "@/lib/seed-data";
 
 type FloatingTrace = {
   trace: Trace;
@@ -106,12 +106,12 @@ export function DanmakuOverlay({
                     {f.trace.note}
                   </p>
                   <div className="mt-1 flex items-center gap-1.5">
-                    <span
-                      className="h-3 w-3 rounded-full text-[7px] font-mono grid place-items-center text-background"
-                      style={{ background: f.trace.userColor }}
-                    >
-                      {f.trace.userInitial}
-                    </span>
+                    <img
+                      src={getUserAvatar(f.trace.userId)}
+                      alt=""
+                      className="h-3 w-3 rounded-full object-cover"
+                      loading="lazy"
+                    />
                     <span className="text-[8px] font-mono uppercase tracking-wider text-muted-foreground">
                       {f.trace.time} · {f.trace.mood}
                     </span>

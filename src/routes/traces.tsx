@@ -4,7 +4,7 @@ import { MapPin, X, Play, Plus } from "lucide-react";
 import { z } from "zod";
 import { PhoneShell } from "@/components/PhoneShell";
 import { PinnedToast } from "@/components/PinnedToast";
-import { FEED, PINS, userTraceToTrace, type Trace } from "@/lib/seed-data";
+import { FEED, PINS, getUserAvatar, userTraceToTrace, type Trace } from "@/lib/seed-data";
 import { getUserTraces, saveUserTrace, type UserTrace } from "@/lib/storage";
 
 const tracesSearchSchema = z.object({
@@ -45,6 +45,9 @@ function TracesScreen() {
 
   const [pinnedTrace, setPinnedTrace] = useState<UserTrace | null>(null);
   const [composerOpen, setComposerOpen] = useState(false);
+  // Paged feed — show 10 first, "Show more" reveals 10 more at a time.
+  // Cuts initial cognitive load + lets the page breathe (airbuds-style).
+  const [visibleCount, setVisibleCount] = useState(10);
 
   const myTracesAsTrace = useMemo(
     () => getUserTraces().map(userTraceToTrace),
@@ -86,18 +89,21 @@ function TracesScreen() {
 
   return (
     <PhoneShell>
-      <header className="px-6 pt-4">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-accent-hot">Discover</p>
-        <h1 className="mt-3 text-[34px] leading-[0.95] font-extrabold tracking-[-0.02em] uppercase">
-          strangers,<br />
-          <span className="text-gradient-neon">song by song</span>
+      <header className="px-6 pt-5">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/55">
+          Discover
+        </p>
+        <h1 className="mt-2 text-[28px] leading-[1.05] font-extrabold tracking-tight text-white">
+          Strangers,<br />song by song.
         </h1>
       </header>
 
-      {/* IG-style story bubbles — self pinned at the head of the row */}
+      {/* IG-style story bubbles — self pinned at the head of the row.
+          Sized so 4 bubbles fit on one row (88px each: 80 avatar + ~8 gap),
+          giving the row breathing room and matching the airbuds reference. */}
       <div className="mt-5 px-5">
         <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 -mx-1 px-1">
-          {storyItems.map((s, i) =>
+          {storyItems.map((s) =>
             s.kind === "self" ? (
               <button
                 key="self"
@@ -105,10 +111,13 @@ function TracesScreen() {
                 className="shrink-0 flex flex-col items-center gap-1.5 group"
                 aria-label="Pin a new trace"
               >
-                <span className="relative h-16 w-16 rounded-full grid place-items-center transition-transform group-hover:scale-105 p-[2px] bg-white/10">
-                  <span className="h-full w-full rounded-full grid place-items-center font-display text-[20px] bg-gradient-to-br from-accent to-primary text-accent-foreground border-2 border-background">
-                    L
-                  </span>
+                <span className="relative h-20 w-20 rounded-full grid place-items-center transition-transform group-hover:scale-105 p-[2px] bg-white/10">
+                  <img
+                    src={getUserAvatar("self")}
+                    alt="Your avatar"
+                    className="h-full w-full rounded-full object-cover border-2 border-background"
+                    loading="lazy"
+                  />
                   <span className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-accent border-2 border-background grid place-items-center">
                     <Plus className="h-3 w-3 text-accent-foreground" strokeWidth={2.8} />
                   </span>
@@ -123,16 +132,16 @@ function TracesScreen() {
                 aria-label={`See traces from ${s.initial}`}
               >
                 <span
-                  className={`relative h-16 w-16 rounded-full grid place-items-center transition-transform group-hover:scale-105 ${
+                  className={`relative h-20 w-20 rounded-full grid place-items-center transition-transform group-hover:scale-105 ${
                     s.hasNew ? "p-[2px] bg-gradient-to-tr from-accent via-primary to-accent" : "p-[2px] bg-white/10"
                   }`}
                 >
-                  <span
-                    className="h-full w-full rounded-full grid place-items-center font-display text-[20px] text-background border-2 border-background"
-                    style={{ background: s.color }}
-                  >
-                    {s.initial}
-                  </span>
+                  <img
+                    src={getUserAvatar(s.id)}
+                    alt={`${s.initial} avatar`}
+                    className="h-full w-full rounded-full object-cover border-2 border-background"
+                    loading="lazy"
+                  />
                   {s.hasNew && (
                     <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-accent border-2 border-background" />
                   )}
@@ -146,35 +155,37 @@ function TracesScreen() {
         </div>
       </div>
 
-      {/* Sentence-forward feed */}
-      <div className="px-5 mt-4 space-y-2.5 pb-2">
+      {/* Sentence-forward feed — paged 10-at-a-time so the page breathes
+          and the user opts into more. Cards are slimmed: just avatar +
+          quote + place·time meta, mood/song chips removed for density. */}
+      <div className="px-5 mt-5 space-y-2 pb-4">
         <p className="px-1 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
           Today, in the city
         </p>
-        {feedToRender.map((t) => (
+        {feedToRender.slice(0, visibleCount).map((t) => (
           <article
             key={t.id}
             ref={(el) => {
               if (highlight === t.id) highlightRef.current = el;
             }}
-            className={`rounded-2xl px-4 py-3 glass border transition-all ${
+            className={`rounded-2xl px-4 py-3 bg-white/8 backdrop-blur-md border transition-all ${
               highlight === t.id
                 ? "border-accent shadow-accent bg-accent/5"
-                : "border-white/5 hover:border-accent/20"
+                : "border-white/10 hover:border-white/25"
             }`}
           >
-            <div className="flex items-center gap-2.5">
-              <span
-                className="shrink-0 h-7 w-7 rounded-full grid place-items-center text-[10px] font-mono text-background"
-                style={{ background: t.userColor }}
-              >
-                {t.userInitial}
-              </span>
+            <div className="flex items-center gap-3">
+              <img
+                src={getUserAvatar(t.userId)}
+                alt=""
+                className="shrink-0 h-9 w-9 rounded-full object-cover"
+                loading="lazy"
+              />
               <div className="min-w-0 flex-1">
-                <p className="text-[13px] leading-snug text-foreground/90">
-                  <span className="italic">"{t.note}"</span>
+                <p className="text-[13px] leading-snug text-foreground/95 line-clamp-2 italic">
+                  "{t.note}"
                 </p>
-                <div className="mt-1 flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
+                <div className="mt-1 flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground">
                   {t.locationId ? (
                     <Link
                       to="/"
@@ -192,25 +203,20 @@ function TracesScreen() {
                     </span>
                   )}
                   <span>·</span>
-                  <Link
-                    to="/playing"
-                    search={{ song: t.forSong.song, artist: t.forSong.artist, loc: t.locationId }}
-                    className="group/song flex items-center gap-1 truncate hover:text-accent transition-colors"
-                    aria-label={`Play ${t.forSong.song} by ${t.forSong.artist}`}
-                  >
-                    <Play className="h-2.5 w-2.5 text-accent shrink-0 opacity-70 group-hover/song:opacity-100" fill="currentColor" />
-                    <span className="truncate">
-                      {t.forSong.song} — {t.forSong.artist}
-                    </span>
-                  </Link>
+                  <span>{t.time}</span>
                 </div>
               </div>
-              <span className="shrink-0 text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-accent/15 text-accent border border-accent/20">
-                {t.mood}
-              </span>
             </div>
           </article>
         ))}
+        {visibleCount < feedToRender.length && (
+          <button
+            onClick={() => setVisibleCount((n) => n + 10)}
+            className="w-full mt-2 py-3 rounded-2xl bg-white/8 backdrop-blur-md border border-white/10 text-[12px] font-semibold uppercase tracking-[0.18em] text-white/70 hover:text-white hover:border-white/25 transition-colors"
+          >
+            Show more
+          </button>
+        )}
       </div>
 
       {openUser && (
@@ -237,12 +243,12 @@ function UserStoryModal({ user, onClose }: { user: StoryStranger; onClose: () =>
       >
         <div className="mx-auto h-1 w-10 rounded-full bg-white/20 mb-4" />
         <div className="flex items-center gap-3">
-          <span
-            className="h-12 w-12 rounded-full grid place-items-center font-display text-[18px] text-background"
-            style={{ background: user.color }}
-          >
-            {user.initial}
-          </span>
+          <img
+            src={getUserAvatar(user.id)}
+            alt={`${user.initial} avatar`}
+            className="h-12 w-12 rounded-full object-cover"
+            loading="lazy"
+          />
           <div className="flex-1 min-w-0">
             <p className="font-display text-[18px] leading-tight">a stranger</p>
             <p className="text-[11px] text-muted-foreground">{user.traces.length} traces · this week</p>
