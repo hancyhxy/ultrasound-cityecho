@@ -73,12 +73,41 @@ function MeScreen() {
         </button>
       </header>
 
-      {/* Section 0 · Identity (minimal) */}
+      {/* Section 0 · Identity — stickered portrait (airbuds-style). Emojis float
+          around the portrait with white outlines, like collage stickers. */}
       <section className="relative mt-6 px-6 flex flex-col items-center text-center">
-        <div className="h-24 w-24 rounded-portrait bg-gradient-to-br from-accent-hot via-primary to-primary-bright shadow-neon grid place-items-center ring-1 ring-white/10">
-          <span className="font-extrabold text-[32px] text-white">L</span>
+        <div className="relative">
+          {/* Portrait — square chunky tile with white border and gradient fill. */}
+          <div className="h-24 w-24 rounded-2xl bg-gradient-to-br from-accent-hot via-primary to-primary-bright grid place-items-center ring-[3px] ring-white shadow-lg">
+            <span className="font-extrabold text-[32px] text-white">L</span>
+          </div>
+          {/* Emoji stickers — each ring of white acts as the collage outline. */}
+          <span
+            aria-hidden
+            className="absolute -top-3 -left-4 h-8 w-8 rounded-full bg-white grid place-items-center text-[18px] shadow-md ring-2 ring-white -rotate-12"
+          >
+            💝
+          </span>
+          <span
+            aria-hidden
+            className="absolute -top-2 -right-5 h-9 w-9 rounded-full bg-white grid place-items-center text-[20px] shadow-md ring-2 ring-white rotate-6"
+          >
+            🌙
+          </span>
+          <span
+            aria-hidden
+            className="absolute -bottom-2 -left-5 h-9 w-9 rounded-full bg-white grid place-items-center text-[20px] shadow-md ring-2 ring-white rotate-12"
+          >
+            🥰
+          </span>
+          <span
+            aria-hidden
+            className="absolute -bottom-3 -right-4 h-8 w-8 rounded-full bg-white grid place-items-center text-[18px] shadow-md ring-2 ring-white -rotate-6"
+          >
+            ☁️
+          </span>
         </div>
-        <h1 className="mt-6 text-[30px] leading-[0.95] font-extrabold tracking-[-0.02em] uppercase">Lina</h1>
+        <h1 className="mt-7 text-[30px] leading-[0.95] font-extrabold tracking-[-0.02em] uppercase">Lina</h1>
         <p className="mt-3 italic text-[14px] leading-relaxed text-foreground/70 max-w-[14rem]">
           in this city for seven months,<br />
           listening softly.

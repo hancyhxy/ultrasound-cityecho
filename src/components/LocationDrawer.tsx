@@ -59,7 +59,7 @@ export function LocationDrawer({
           <span className="block h-1 w-10 rounded-full bg-white/30 group-hover:bg-accent/60 transition-colors" />
           <span className="text-[9px] font-mono uppercase tracking-[0.18em] text-muted-foreground/60 flex items-center gap-1">
             {snap === "half" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-            {snap === "half" ? "swipe up for full list" : "collapse"}
+            {snap === "half" ? "tap to expand" : "tap to collapse"}
           </span>
         </button>
 
@@ -107,7 +107,7 @@ export function LocationDrawer({
             What plays here
           </p>
           <ul className="space-y-1.5 pb-4">
-            {(snap === "half" ? pin.songs.slice(0, 3) : pin.songs).map((t, i) => {
+            {pin.songs.map((t, i) => {
               const justSaved = savedSongIdx === i;
               return (
                 <li
@@ -153,8 +153,8 @@ export function LocationDrawer({
             Save list
           </Link>
           <Link
-            to="/playing"
-            search={{ song: pin.songs[0]?.song, artist: pin.songs[0]?.artist, loc: pin.id }}
+            to="/location/$id"
+            params={{ id: pin.id }}
             className="flex-1 h-11 rounded-2xl bg-accent text-accent-foreground font-medium shadow-accent flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
           >
             <Play className="h-4 w-4" fill="currentColor" />

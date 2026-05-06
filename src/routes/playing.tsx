@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronDown, Heart, Pause, SkipBack, SkipForward, MessageCircle, MapPin, Quote, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ChevronDown, Heart, Pause, SkipBack, SkipForward, MapPin, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { PhoneShell } from "@/components/PhoneShell";
 import { Equalizer } from "@/components/Equalizer";
@@ -8,13 +8,18 @@ import { FlipToggle, type CollageView } from "@/components/FlipToggle";
 import { CollageBoard } from "@/components/CollageBoard";
 import { DanmakuOverlay } from "@/components/DanmakuOverlay";
 import { PinnedToast } from "@/components/PinnedToast";
-import { findTracesForSong, PINS } from "@/lib/seed-data";
-import { saveUserTrace, type UserTrace } from "@/lib/storage";
+import { TraceCard } from "@/components/TraceCard";
+import { findTracesForLocation, findTracesForSong, PINS, userTraceToTrace } from "@/lib/seed-data";
+import { getSongTheme } from "@/lib/song-themes";
+import { getUserTraces, saveUserTrace, type UserTrace } from "@/lib/storage";
 
 const playingSearchSchema = z.object({
   song: z.string().optional(),
   artist: z.string().optional(),
   loc: z.string().optional(),
+  /** Initial view face. Defaults to track. Set ?view=story to land on the
+      location's STORY face (used by LocationDrawer "Tune in to {place}"). */
+  view: z.enum(["track", "story"]).optional(),
 });
 
 export const Route = createFileRoute("/playing")({
@@ -43,15 +48,37 @@ function PlayingScreen() {
   const locId = search.loc ?? DEFAULTS.loc;
   const location = PINS.find((p) => p.id === locId) ?? PINS[0];
 
-  const [view, setView] = useState<CollageView>("track");
+  const [view, setView] = useState<CollageView>(search.view ?? "track");
+
+  // Sync view state when URL ?view changes (e.g. navigating from
+  // LocationDrawer "Tune in" while already on /playing — React Router won't
+  // re-mount the component, so the initial useState value never refreshes).
+  useEffect(() => {
+    if (search.view && search.view !== view) {
+      setView(search.view);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.view]);
   const [isFlipping, setIsFlipping] = useState(false);
   const [showTraceModal, setShowTraceModal] = useState(false);
   const [pinnedTrace, setPinnedTrace] = useState<UserTrace | null>(null);
 
-  const traces = useMemo(
-    () => findTracesForSong(song, artist, locId),
-    [song, artist, locId]
-  );
+  // Song-scoped traces — used by TRACK face danmaku ("voices for this song").
+  const songTraces = useMemo(() => {
+    const fixtures = findTracesForSong(song, artist, locId);
+    const mine = getUserTraces()
+      .filter((ut) => ut.song === song && ut.artist === artist)
+      .map(userTraceToTrace);
+    return [...mine, ...fixtures];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [song, artist, locId, pinnedTrace]);
+
+  // Location-scoped traces — used by STORY face ("the story of this place").
+  // Each card shows a different song; visual heterogeneity is the feature.
+  const locationTraces = useMemo(() => {
+    return findTracesForLocation(locId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locId, pinnedTrace]);
 
   const handleFlip = (next: CollageView) => {
     if (next === view) return;
@@ -60,37 +87,94 @@ function PlayingScreen() {
     setTimeout(() => setIsFlipping(false), 900);
   };
 
+  // STORY backdrop tint: take from the first trace's song so the page has a
+  // single anchor color (versus picking randomly across heterogeneous cards).
+  const firstTraceSong = locationTraces[0];
+  const backdropTheme = firstTraceSong
+    ? getSongTheme(firstTraceSong.song, firstTraceSong.artist)
+    : getSongTheme(song, artist);
+  const isStory = view === "story";
+
+  // FlipToggle only makes sense when both faces have a coherent context.
+  // When entering /playing with only `loc` (no song), there's no single-song
+  // context for the TRACK face — so we hide the toggle and the user can only
+  // exit STORY via the back arrow. Otherwise the toggle would jump them into
+  // an arbitrary fallback song's dashboard, which is jarring.
+  const hasSongContext = Boolean(search.song && search.artist);
+  const showFlipToggle = hasSongContext;
+
+  // STORY face = full-bleed location page tinted by the first song; TRACK face = current plum dashboard.
+  const backdropStyle = isStory
+    ? {
+        background: `
+          radial-gradient(at 50% 0%, ${backdropTheme.tint}ee 0%, transparent 60%),
+          linear-gradient(180deg, ${backdropTheme.tint} 0%, ${backdropTheme.tintDeep} 70%, #050a14 100%)
+        `,
+      }
+    : undefined;
+
   return (
-    <PhoneShell>
-      <div className="px-5 pt-3 flex items-center justify-between">
-        <Link to="/" className="h-9 w-9 grid place-items-center rounded-full glass">
+    <PhoneShell backdropStyle={backdropStyle}>
+      <div className="relative z-10 px-5 pt-3 flex items-center justify-between">
+        <Link to="/" className={`h-9 w-9 grid place-items-center rounded-full ${isStory ? "bg-white/10 backdrop-blur" : "glass"}`}>
           <ChevronDown className="h-4 w-4" />
         </Link>
-        <div className="text-center">
-          <p className="text-[9px] font-mono uppercase tracking-[0.18em] text-muted-foreground">Listening at</p>
-          <p className="text-xs text-accent font-medium">{location.label}</p>
-        </div>
-        <FlipToggle view={view} onChange={handleFlip} />
-      </div>
-
-      <div className="relative px-3 mt-3">
-        <CollageBoard
-          view={view}
-          track={<TrackFace song={song} artist={artist} location={location} />}
-          story={
-            <StoryFace
-              song={song}
-              artist={artist}
-              location={location}
-              traces={traces}
-              onLeaveTrace={() => setShowTraceModal(true)}
-            />
-          }
-        />
-        {view === "track" && !isFlipping && (
-          <DanmakuOverlay traces={traces} active={true} />
+        {/* TRACK face keeps the listening-at label; STORY face is single-song
+            focus and shows nothing here (location surfaces inside each card via @place). */}
+        {!isStory ? (
+          <div className="text-center">
+            <p className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
+              Listening at
+            </p>
+            <p className="text-xs font-medium text-accent">{location.label}</p>
+          </div>
+        ) : (
+          <div />
+        )}
+        {showFlipToggle ? (
+          <FlipToggle view={view} onChange={handleFlip} />
+        ) : (
+          // Location-only context: PLAYLIST ↔ STORY pill toggle (airbuds-style).
+          // PLAYLIST jumps back to /location/$id; STORY is active (we're on it).
+          <div className="inline-flex items-center gap-0.5 h-9 rounded-pill bg-black/30 backdrop-blur p-0.5">
+            <Link
+              to="/location/$id"
+              params={{ id: locId }}
+              className="inline-flex items-center h-8 px-3.5 rounded-pill text-white/70 font-bold uppercase tracking-[0.16em] text-[11px] hover:text-white transition-colors"
+            >
+              Playlist
+            </Link>
+            <span className="inline-flex items-center h-8 px-3.5 rounded-pill bg-white text-zinc-900 font-extrabold uppercase tracking-[0.16em] text-[11px]">
+              Story
+            </span>
+          </div>
         )}
       </div>
+
+      {/* TRACK face — collage with flip animation kept for the dashboard side.
+          Danmaku uses song-scoped traces ("voices for this song"). */}
+      {!isStory && (
+        <div className="relative z-10 px-3 mt-3">
+          <CollageBoard
+            view={view}
+            track={<TrackFace song={song} artist={artist} location={location} />}
+            story={null}
+          />
+          {!isFlipping && <DanmakuOverlay traces={songTraces} active={true} />}
+        </div>
+      )}
+
+      {/* STORY face — full-bleed scrollable page (no collage container).
+          Renders location-scoped traces (the place's story; heterogeneous songs). */}
+      {isStory && (
+        <div className="relative z-10 mt-2">
+          <StoryFace
+            location={location}
+            traces={locationTraces}
+            onLeaveTrace={() => setShowTraceModal(true)}
+          />
+        </div>
+      )}
 
       {showTraceModal && (
         <TraceModal
@@ -194,106 +278,82 @@ function TrackFace({
 }
 
 function StoryFace({
-  song,
-  artist,
   location,
   traces,
   onLeaveTrace,
 }: {
-  song: string;
-  artist: string;
   location: (typeof PINS)[number];
-  traces: ReturnType<typeof findTracesForSong>;
+  traces: ReturnType<typeof findTracesForLocation>;
   onLeaveTrace: () => void;
 }) {
-  const heroTrace = traces[0];
-  const otherTraces = traces.slice(1, 3);
+  const count = traces.length;
+  // Backdrop tint anchored to the first trace's song theme (set by parent).
+  // Used here just for the CTA button color so it reads against the bg.
+  const firstTrace = traces[0];
+  const ctaTheme = firstTrace
+    ? getSongTheme(firstTrace.song, firstTrace.artist)
+    : { tint: "#3a3a3a", tintDeep: "#0a0a0a", tintLight: "#e0e0e0" };
 
   return (
-    <div className="grid grid-cols-3 gap-2 px-2">
-      <div className="col-span-3 rounded-3xl bg-card-gradient border border-accent/30 p-5 shadow-glow relative overflow-hidden">
-        <div aria-hidden className="absolute -top-8 -right-8 h-32 w-32 bg-accent/30 rounded-full blur-3xl" />
-        <Quote className="h-5 w-5 text-accent" />
-        {heroTrace ? (
-          <>
-            <p className="mt-3 text-[15px] leading-relaxed italic text-foreground/95">
-              "{heroTrace.note}"
-            </p>
-            <div className="mt-3 flex items-center gap-2">
-              <span
-                className="h-6 w-6 rounded-full grid place-items-center text-[10px] font-mono text-background"
-                style={{ background: heroTrace.userColor }}
-              >
-                {heroTrace.userInitial}
-              </span>
-              <p className="text-[11px] text-muted-foreground">
-                a stranger · {heroTrace.time} ago · {heroTrace.place}
-              </p>
-            </div>
-          </>
-        ) : (
-          <p className="mt-3 text-[14px] leading-relaxed italic text-muted-foreground">
-            No one has left a trace here yet. You could be the first.
-          </p>
-        )}
+    <div className="relative pb-4 min-h-full">
+      {/* Hero — location identity. Place name + mood + count drive the page. */}
+      <div className="flex flex-col items-center px-4 pt-2 pb-4 text-center">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/55">
+          The story of
+        </p>
+        <h1
+          className="font-pop mt-2 text-[34px] text-white"
+          style={{
+            fontWeight: 800,
+            lineHeight: 1.0,
+            letterSpacing: "-0.03em",
+          }}
+        >
+          {location.label}
+        </h1>
+        <p className="mt-2 text-[12px] italic text-white/70 max-w-[18rem]">
+          {location.mood}
+        </p>
+        <p
+          className="mt-3 text-[10px] font-semibold tracking-[0.18em] uppercase"
+          style={{ color: ctaTheme.tintLight }}
+        >
+          {count > 0 ? `${count} ${count === 1 ? "trace" : "traces"} here` : "no traces yet"}
+        </p>
       </div>
 
-      <div className="col-span-1 row-span-2 relative aspect-square rounded-2xl overflow-hidden border border-white/10">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent/60 to-background" />
-        <div aria-hidden className="absolute -top-4 -left-4 h-20 w-20 bg-accent/40 rounded-full blur-2xl" />
-        <div className="absolute inset-0 p-2.5 flex flex-col justify-end">
-          <p className="text-[10px] font-display font-medium leading-tight text-foreground/95 line-clamp-2">{song}</p>
-          <p className="text-[8px] font-mono text-muted-foreground truncate">{artist}</p>
+      {/* White-card stack of every trace at this location (heterogeneous songs). */}
+      {count > 0 ? (
+        <div className="flex flex-col gap-3 px-3">
+          {traces.map((t, i) => (
+            <TraceCard key={t.id} trace={t} index={i} />
+          ))}
         </div>
-      </div>
-
-      <div className="col-span-2 rounded-2xl glass border border-white/10 p-3.5">
-        {otherTraces[0] ? (
-          <>
-            <p className="text-[12px] leading-snug italic text-foreground/90 line-clamp-3">
-              "{otherTraces[0].note}"
-            </p>
-            <p className="mt-2 text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
-              — {otherTraces[0].userInitial}-stranger · {otherTraces[0].time}
-            </p>
-          </>
-        ) : (
-          <p className="text-[11px] text-muted-foreground italic">
-            More voices will gather here as people pass through.
-          </p>
-        )}
-      </div>
-
-      <div className="col-span-2 rounded-2xl glass border border-white/10 p-3 flex flex-wrap gap-1.5 items-center">
-        <span className="text-[9px] font-mono uppercase tracking-[0.18em] text-accent pr-1">moods here</span>
-        {location.tags.map((t) => (
-          <span key={t} className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-accent/15 text-accent border border-accent/20">
-            #{t}
-          </span>
-        ))}
-      </div>
-
-      {otherTraces[1] && (
-        <div className="col-span-3 rounded-2xl glass border border-white/10 p-3.5">
-          <p className="text-[12px] leading-snug italic text-foreground/90">
-            "{otherTraces[1].note}"
-          </p>
-          <p className="mt-2 text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
-            — {otherTraces[1].userInitial}-stranger · {otherTraces[1].place} · {otherTraces[1].time}
+      ) : (
+        <div className="px-6 py-10 text-center">
+          <p className="italic text-[14px] text-white/70 leading-relaxed">
+            no one has written about this place yet.
+            <br />
+            you could be the first.
           </p>
         </div>
       )}
 
-      <button
-        onClick={onLeaveTrace}
-        className="col-span-3 rounded-2xl p-4 glass-strong border border-accent/30 hover:border-accent transition-colors text-left flex items-center gap-3"
-      >
-        <MessageCircle className="h-5 w-5 text-accent" />
-        <div className="flex-1">
-          <p className="text-[14px] font-medium">Leave a trace</p>
-          <p className="text-[11px] text-muted-foreground">One sentence. No name. Stays in this room.</p>
-        </div>
-      </button>
+      {/* Sticky chunky CTA — sits between the 4th/5th card area, just above the
+          bottom nav. Negative bottom lets it overlap the nav padding zone. */}
+      <div className="sticky -bottom-2 mt-6 flex justify-center pointer-events-none">
+        <button
+          onClick={onLeaveTrace}
+          className="pointer-events-auto inline-flex items-center gap-2 rounded-pill px-6 py-3 text-[12px] font-extrabold uppercase tracking-[0.16em] text-white"
+          style={{
+            background: ctaTheme.tint,
+            boxShadow: `0 8px 24px -8px ${ctaTheme.tintDeep}`,
+          }}
+        >
+          <span aria-hidden>＋</span>
+          Leave a trace here
+        </button>
+      </div>
     </div>
   );
 }

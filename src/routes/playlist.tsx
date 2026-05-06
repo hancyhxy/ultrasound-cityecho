@@ -1,15 +1,9 @@
-// TODO ITER-9+: redesign /playlist UX from scratch.
-// This page is Lovable-prototype residue — its UX was never re-examined during
-// ITER-1..ITER-7. ITER-7 only token-shifts the visuals so it doesn't visually
-// break vs. the rest of the app; structure and information hierarchy below
-// remain Lovable-original and should be rebuilt around place-bound seed
-// playlists + user-pinned traces playlists in a future iteration.
-
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Play, Plus, Trash2, X, MapPin } from "lucide-react";
+import { Plus, Trash2, X, MapPin } from "lucide-react";
 import { PhoneShell } from "@/components/PhoneShell";
-import { ALL_MOODS, PINS, SEED_PLAYLISTS, type SeedPlaylist } from "@/lib/seed-data";
+import { FourGridCover } from "@/components/FourGridCover";
+import { ALL_MOODS, PINS, SEED_PLAYLISTS, type Song, type SeedPlaylist } from "@/lib/seed-data";
 import {
   deleteUserPlaylist,
   getUserPlaylists,
@@ -21,13 +15,11 @@ export const Route = createFileRoute("/playlist")({
   head: () => ({
     meta: [
       { title: "Playlist — Ultrasound" },
-      { name: "description", content: "Quiet catalogues built from strangers' recommendations." },
+      { name: "description", content: "The places you come back to." },
     ],
   }),
   component: PlaylistScreen,
 });
-
-type FilterMode = "all" | "mood" | "location";
 
 type Card =
   | { kind: "seed"; data: SeedPlaylist }
@@ -36,128 +28,63 @@ type Card =
 function PlaylistScreen() {
   const [userPlaylists, setUserPlaylists] = useState<UserPlaylist[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
-  const [filterMode, setFilterMode] = useState<FilterMode>("all");
-  const [filterValue, setFilterValue] = useState<string | null>(null);
 
   useEffect(() => {
+    // One-time cleanup: remove user playlists whose songs reference tracks that
+    // were retired during ITER-9 (Bon Iver, Cha Cha, etc). These show as plum
+    // placeholders because their cover lookups now miss song-themes.
+    const RETIRED_ARTISTS = new Set(["Bon Iver", "Freddie Dredd", "Aphex Twin", "Brian Eno", "Neil Young"]);
+    const all = getUserPlaylists();
+    for (const p of all) {
+      const allRetired = p.songs.length > 0 && p.songs.every((s) => RETIRED_ARTISTS.has(s.artist));
+      if (allRetired) deleteUserPlaylist(p.id);
+    }
     setUserPlaylists(getUserPlaylists());
   }, []);
 
   const reload = () => setUserPlaylists(getUserPlaylists());
 
   const cards: Card[] = useMemo(() => {
-    const all: Card[] = [
+    return [
       ...userPlaylists.map((p) => ({ kind: "user" as const, data: p })),
       ...SEED_PLAYLISTS.map((p) => ({ kind: "seed" as const, data: p })),
     ];
-    if (filterMode === "mood" && filterValue) {
-      return all.filter((c) => c.data.moods.includes(filterValue));
-    }
-    if (filterMode === "location" && filterValue) {
-      return all.filter((c) => c.data.locationId === filterValue);
-    }
-    return all;
-  }, [userPlaylists, filterMode, filterValue]);
+  }, [userPlaylists]);
 
   return (
     <PhoneShell>
-      <header className="px-6 pt-4 flex items-start justify-between gap-3">
+      {/* Hero — chunky-pop title + create button */}
+      <header className="px-6 pt-5 flex items-end justify-between gap-3">
         <div>
-          <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-accent">Yours</p>
-          <h1 className="mt-2 text-[28px] leading-[1.1] font-medium">
-            The places you<br /><span className="italic text-gradient-neon">come back to.</span>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/55">
+            Yours
+          </p>
+          <h1 className="mt-2 text-[28px] leading-[1.05] font-extrabold tracking-tight text-white">
+            The places you<br />come back to.
           </h1>
         </div>
         <button
           onClick={() => setCreateOpen(true)}
           aria-label="Create new playlist"
-          className="h-11 w-11 rounded-full bg-accent shadow-accent grid place-items-center hover:scale-105 transition-transform shrink-0 mt-1"
+          className="h-11 w-11 rounded-full bg-white grid place-items-center shadow-lg active:scale-95 transition-transform shrink-0"
         >
-          <Plus className="h-5 w-5 text-accent-foreground" strokeWidth={2.5} />
+          <Plus className="h-5 w-5 text-zinc-900" strokeWidth={2.6} />
         </button>
       </header>
 
-      {/* Filter row */}
-      <div className="mt-5 px-5 space-y-2">
-        <div className="flex gap-1.5">
-          {(["all", "mood", "location"] as FilterMode[]).map((m) => (
-            <button
-              key={m}
-              onClick={() => {
-                setFilterMode(m);
-                setFilterValue(null);
-              }}
-              className={`px-3 py-1.5 rounded-full text-[11px] font-mono uppercase tracking-wider transition-colors ${
-                filterMode === m
-                  ? "bg-accent text-accent-foreground"
-                  : "bg-white/5 text-muted-foreground hover:bg-white/10"
-              }`}
-            >
-              {m === "all" ? "all" : `by ${m}`}
-            </button>
-          ))}
-        </div>
-
-        {filterMode === "mood" && (
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {ALL_MOODS.map((m) => (
-              <button
-                key={m}
-                onClick={() => setFilterValue(filterValue === m ? null : m)}
-                className={`px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider transition-colors ${
-                  filterValue === m
-                    ? "bg-accent/30 text-accent border border-accent/40"
-                    : "bg-white/5 text-foreground/70 border border-white/5 hover:bg-white/10"
-                }`}
-              >
-                {m}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {filterMode === "location" && (
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {PINS.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => setFilterValue(filterValue === p.id ? null : p.id)}
-                className={`px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider transition-colors flex items-center gap-1 ${
-                  filterValue === p.id
-                    ? "bg-accent/30 text-accent border border-accent/40"
-                    : "bg-white/5 text-foreground/70 border border-white/5 hover:bg-white/10"
-                }`}
-              >
-                <MapPin className="h-2.5 w-2.5" />
-                {p.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Grid */}
-      <div className="px-5 mt-5 grid grid-cols-2 gap-3">
+      {/* 2-col grid of playlist cards (airbuds-style chunky tiles) */}
+      <div className="px-5 mt-7 grid grid-cols-2 gap-3 pb-8">
         {cards.length === 0 && (
-          <div className="col-span-2 rounded-2xl p-5 glass border border-white/5 text-center">
-            <p className="text-[13px] text-muted-foreground">Nothing here yet under this filter.</p>
+          <div className="col-span-2 rounded-card-lg p-5 bg-white/5 border border-white/10 text-center">
+            <p className="text-[13px] text-white/60">
+              Nothing yet. Tap + to start a place to come back to.
+            </p>
           </div>
         )}
         {cards.map((c) => (
           <PlaylistCard key={`${c.kind}-${c.data.id}`} card={c} onDelete={reload} />
         ))}
       </div>
-
-      <section className="mx-6 mt-7 rounded-2xl p-5 bg-card-gradient border border-white/10">
-        <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-accent">This week</p>
-        <h3 className="mt-2 font-display text-[20px] leading-snug">You contributed 4 traces.</h3>
-        <p className="mt-1 text-[13px] text-muted-foreground">3 strangers played the songs you pinned.</p>
-        <div className="mt-4 flex gap-1.5 h-12 items-end">
-          {[40, 22, 78, 55, 90, 30, 65].map((h, i) => (
-            <div key={i} className="flex-1 rounded-md bg-gradient-to-t from-accent/30 to-accent" style={{ height: `${h}%` }} />
-          ))}
-        </div>
-      </section>
 
       {createOpen && (
         <CreatePlaylistModal
@@ -172,19 +99,32 @@ function PlaylistScreen() {
   );
 }
 
+/** Resolve the songs to render in the cover grid for a card. */
+function songsForCover(card: Card): Song[] {
+  if (card.kind === "user") {
+    return card.data.songs.slice(0, 4);
+  }
+  // Seed playlist: try to fall back to the bound location's top songs.
+  const locId = card.data.locationId;
+  if (locId) {
+    const pin = PINS.find((p) => p.id === locId);
+    if (pin) return pin.songs.slice(0, 4);
+  }
+  return [];
+}
+
 function PlaylistCard({ card, onDelete }: { card: Card; onDelete: () => void }) {
   const isUser = card.kind === "user";
   const data = card.data;
-  const gradient = isUser
-    ? "from-accent/60 to-primary/60"
-    : (data as SeedPlaylist).gradient;
   const count = isUser ? (data as UserPlaylist).songs.length : (data as SeedPlaylist).count;
+  const songs = songsForCover(card);
+  const linkProps = card.data.locationId
+    ? { to: "/location/$id" as const, params: { id: card.data.locationId } }
+    : { to: "/playlist" as const };
 
   return (
-    <div className="group relative aspect-square rounded-2xl overflow-hidden border border-white/10">
-      <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`} />
-      <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
-
+    <div className="group relative rounded-card-lg overflow-hidden bg-white/8 backdrop-blur border border-white/10 transition-all hover:border-white/25 hover:bg-white/12">
+      {/* Delete button — only for user playlists, hover-revealed */}
       {isUser && (
         <button
           onClick={(e) => {
@@ -193,38 +133,43 @@ function PlaylistCard({ card, onDelete }: { card: Card; onDelete: () => void }) 
             onDelete();
           }}
           aria-label="Delete playlist"
-          className="absolute top-2 right-2 h-7 w-7 rounded-full bg-background/60 grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity"
+          className="absolute top-2 right-2 h-7 w-7 z-10 rounded-full bg-black/50 backdrop-blur grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity"
         >
-          <Trash2 className="h-3 w-3 text-foreground/80" />
+          <Trash2 className="h-3 w-3 text-white" />
         </button>
       )}
-      {isUser && (
-        <span className="absolute top-2 left-2 text-[8px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-accent/30 text-accent border border-accent/40">
-          yours
-        </span>
-      )}
 
-      <div className="absolute bottom-0 left-0 right-0 p-3.5">
-        <p className="text-[13px] font-medium leading-tight line-clamp-2">{data.name}</p>
-        <div className="mt-1.5 flex items-center justify-between">
-          <span className="text-[10px] font-mono text-muted-foreground">{count} songs</span>
-          <span className="h-7 w-7 rounded-full bg-accent grid place-items-center shadow-accent opacity-0 group-hover:opacity-100 transition-opacity">
-            <Play className="h-3 w-3 text-accent-foreground" fill="currentColor" />
-          </span>
+      <Link {...linkProps} className="block p-3">
+        {/* Top — 4-grid cover (centered) */}
+        <div className="flex justify-center">
+          <FourGridCover songs={songs} size={120} />
         </div>
-        {data.moods.length > 0 && (
-          <div className="mt-1.5 flex flex-wrap gap-1">
-            {data.moods.slice(0, 3).map((m) => (
-              <span
-                key={m}
-                className="text-[8px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/10 text-foreground/70"
-              >
-                {m}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
+
+        {/* Body — title, count, moods */}
+        <div className="mt-3">
+          {isUser && (
+            <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-accent-hot mb-1">
+              Yours
+            </p>
+          )}
+          <p className="text-[13px] font-bold text-white leading-tight line-clamp-2">
+            {data.name}
+          </p>
+          <p className="text-[10px] text-white/55 mt-1">{count} songs</p>
+          {data.moods.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {data.moods.slice(0, 2).map((m) => (
+                <span
+                  key={m}
+                  className="text-[8px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white/10 text-white/70"
+                >
+                  {m}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </Link>
     </div>
   );
 }
@@ -261,8 +206,8 @@ function CreatePlaylistModal({
         <div className="mx-auto h-1 w-10 rounded-full bg-white/20 mb-4" />
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="font-display text-[22px] leading-tight">A new place to return to.</h3>
-            <p className="mt-1 text-xs text-muted-foreground">Name it. Tag the mood. Songs come later.</p>
+            <h3 className="font-extrabold text-[22px] leading-tight text-white">A new place to return to.</h3>
+            <p className="mt-1 text-xs text-white/60">Name it. Tag the mood. Songs come later.</p>
           </div>
           <button onClick={onClose} aria-label="Close" className="h-8 w-8 grid place-items-center rounded-full bg-white/5">
             <X className="h-4 w-4" />
@@ -279,7 +224,7 @@ function CreatePlaylistModal({
           className="mt-5 w-full h-12 rounded-2xl bg-background/50 border border-white/10 px-4 text-[15px] focus:outline-none focus:border-accent/40 placeholder:text-muted-foreground/60"
         />
 
-        <p className="mt-5 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">Moods</p>
+        <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60 mb-2">Moods</p>
         <div className="flex flex-wrap gap-2">
           {ALL_MOODS.map((m) => (
             <button
@@ -287,8 +232,8 @@ function CreatePlaylistModal({
               onClick={() => toggleMood(m)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                 moods.includes(m)
-                  ? "bg-accent text-accent-foreground"
-                  : "bg-white/5 text-foreground/70 hover:bg-white/10"
+                  ? "bg-white text-zinc-900"
+                  : "bg-white/10 text-white/70 hover:bg-white/20"
               }`}
             >
               {m}
@@ -296,7 +241,7 @@ function CreatePlaylistModal({
           ))}
         </div>
 
-        <p className="mt-5 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">Bind to a place (optional)</p>
+        <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60 mb-2">Bind to a place (optional)</p>
         <div className="flex flex-wrap gap-2">
           {PINS.map((p) => (
             <button
@@ -304,8 +249,8 @@ function CreatePlaylistModal({
               onClick={() => setLocationId(locationId === p.id ? undefined : p.id)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1 ${
                 locationId === p.id
-                  ? "bg-accent/30 text-accent border border-accent/40"
-                  : "bg-white/5 text-foreground/70 hover:bg-white/10 border border-transparent"
+                  ? "bg-white text-zinc-900"
+                  : "bg-white/10 text-white/70 hover:bg-white/20 border border-transparent"
               }`}
             >
               <MapPin className="h-3 w-3" />
@@ -317,7 +262,7 @@ function CreatePlaylistModal({
         <button
           onClick={handleSave}
           disabled={!canSave}
-          className="mt-7 w-full h-12 rounded-2xl bg-accent text-accent-foreground font-medium hover:opacity-90 transition-opacity shadow-accent disabled:opacity-40 disabled:cursor-not-allowed"
+          className="mt-7 w-full h-12 rounded-2xl bg-white text-zinc-900 font-extrabold uppercase tracking-[0.14em] text-[13px] hover:opacity-90 transition-opacity shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Make it
         </button>

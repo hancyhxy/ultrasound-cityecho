@@ -1,6 +1,42 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+/* Fonts loaded via __root.tsx links — Inter, Fraunces, JetBrains Mono, General Sans */
+
+/* Self-hosted display font — Fontspring DEMO Humber (Fettle Foundry).
+   DEMO version: free for personal / non-commercial / educational use only.
+   Commercial release requires a Humber license from Fontspring.
+   See https://www.fontspring.com/fonts/fettle-foundry/humber for licensing.
+   Files in /public/fonts/Demo_Fonts/ — full family registered so any
+   font-weight (400/600/700/800) picks the right cut. */
+@font-face {
+  font-family: "Humber";
+  src: url("/fonts/Demo_Fonts/Fontspring-DEMO-humber-regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Humber";
+  src: url("/fonts/Demo_Fonts/Fontspring-DEMO-humber-semibold.otf") format("opentype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Humber";
+  src: url("/fonts/Demo_Fonts/Fontspring-DEMO-humber-bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Humber";
+  src: url("/fonts/Demo_Fonts/Fontspring-DEMO-humber-ultrabold.otf") format("opentype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -48,6 +84,10 @@
   --font-display: "Inter", system-ui, sans-serif;
   --font-sans: "Inter", system-ui, sans-serif;
   --font-mono: "Inter", system-ui, sans-serif;
+  /* Pop display font — FSP DEMO Humber UltraBold (Fettle Foundry).
+     Self-hosted via @font-face above. Falls back to General Sans then Inter
+     while the file is loading or if it fails to load. */
+  --font-pop: "Humber", "General Sans", "Inter", system-ui, sans-serif;
 }
 
 :root {
@@ -137,10 +177,14 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
-  body {
+  html, body {
     background-image: var(--gradient-night);
     background-attachment: fixed;
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+    overscroll-behavior: none;
+    position: fixed;
+    width: 100%;
   }
   h1, h2, h3 {
     font-family: var(--font-display);
@@ -192,6 +236,8 @@
   .rounded-card-lg { border-radius: var(--radius-card-lg); }
   .rounded-card-xl { border-radius: var(--radius-card-xl); }
   .rounded-portrait { border-radius: var(--radius-portrait); }
+
+  .font-pop { font-family: var(--font-pop); }
 
   /* 3D flip primitives — used by Playing page collage */
   .perspective-1800 { perspective: 1800px; }

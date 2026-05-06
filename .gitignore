@@ -20,6 +20,9 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Local reference assets (design refs, not used by the app)
+image/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

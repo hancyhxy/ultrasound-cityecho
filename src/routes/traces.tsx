@@ -227,7 +227,7 @@ function TracesScreen() {
   );
 }
 
-function UserStoryModal({ user, onClose }: { user: StoryUser; onClose: () => void }) {
+function UserStoryModal({ user, onClose }: { user: StoryStranger; onClose: () => void }) {
   return (
     <div className="absolute inset-0 z-50 flex items-end" onClick={onClose}>
       <div className="absolute inset-0 bg-background/80 backdrop-blur-md" />

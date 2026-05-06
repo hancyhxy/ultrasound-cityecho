@@ -33,8 +33,9 @@ export function CollageBoard({
           {track}
         </div>
 
-        {/* STORY face — pre-rotated so flip lands face-up */}
-        <div className="backface-hidden absolute inset-0 w-full rotate-y-180">
+        {/* STORY face — pre-rotated so flip lands face-up.
+            overflow-y-auto so chunky-card stacks scroll within the 560 board. */}
+        <div className="backface-hidden absolute inset-0 w-full rotate-y-180 overflow-y-auto scrollbar-none">
           {story}
         </div>
       </div>

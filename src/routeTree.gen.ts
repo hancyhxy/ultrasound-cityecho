@@ -14,6 +14,7 @@ import { Route as PlaylistRouteImport } from './routes/playlist'
 import { Route as PlayingRouteImport } from './routes/playing'
 import { Route as MeRouteImport } from './routes/me'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LocationIdRouteImport } from './routes/location.$id'
 
 const TracesRoute = TracesRouteImport.update({
   id: '/traces',
@@ -40,6 +41,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocationIdRoute = LocationIdRouteImport.update({
+  id: '/location/$id',
+  path: '/location/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/playing': typeof PlayingRoute
   '/playlist': typeof PlaylistRoute
   '/traces': typeof TracesRoute
+  '/location/$id': typeof LocationIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/playing': typeof PlayingRoute
   '/playlist': typeof PlaylistRoute
   '/traces': typeof TracesRoute
+  '/location/$id': typeof LocationIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,27 @@ export interface FileRoutesById {
   '/playing': typeof PlayingRoute
   '/playlist': typeof PlaylistRoute
   '/traces': typeof TracesRoute
+  '/location/$id': typeof LocationIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/me' | '/playing' | '/playlist' | '/traces'
+  fullPaths:
+    | '/'
+    | '/me'
+    | '/playing'
+    | '/playlist'
+    | '/traces'
+    | '/location/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/me' | '/playing' | '/playlist' | '/traces'
-  id: '__root__' | '/' | '/me' | '/playing' | '/playlist' | '/traces'
+  to: '/' | '/me' | '/playing' | '/playlist' | '/traces' | '/location/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/me'
+    | '/playing'
+    | '/playlist'
+    | '/traces'
+    | '/location/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +99,7 @@ export interface RootRouteChildren {
   PlayingRoute: typeof PlayingRoute
   PlaylistRoute: typeof PlaylistRoute
   TracesRoute: typeof TracesRoute
+  LocationIdRoute: typeof LocationIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +139,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/location/$id': {
+      id: '/location/$id'
+      path: '/location/$id'
+      fullPath: '/location/$id'
+      preLoaderRoute: typeof LocationIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +155,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlayingRoute: PlayingRoute,
   PlaylistRoute: PlaylistRoute,
   TracesRoute: TracesRoute,
+  LocationIdRoute: LocationIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

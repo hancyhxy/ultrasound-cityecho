@@ -1,11 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Search, Layers, Play, Users, Plus, Heart } from "lucide-react";
-import { useEffect, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { ChevronUp, Search, SlidersHorizontal } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { PhoneShell } from "@/components/PhoneShell";
-import { Equalizer } from "@/components/Equalizer";
-import { LocationDrawer } from "@/components/LocationDrawer";
+import { BottomCarousel } from "@/components/BottomCarousel";
 import { PINS } from "@/lib/seed-data";
+import { getSongTheme } from "@/lib/song-themes";
 
 const indexSearchSchema = z.object({
   pin: z.string().optional(),
@@ -26,133 +26,317 @@ const YOU_ID = "uts";
 
 function MapScreen() {
   const { pin } = Route.useSearch();
-  const [selectedId, setSelectedId] = useState<string | null>(pin ?? null);
-  const selected = PINS.find((p) => p.id === selectedId) ?? null;
+  // Default selection: URL ?pin=X wins, otherwise the user's anchor (UTS).
+  const [selectedId, setSelectedId] = useState<string>(pin ?? YOU_ID);
+  const [activeMoods, setActiveMoods] = useState<Set<string>>(new Set());
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [carouselExpanded, setCarouselExpanded] = useState(true);
+  // Hero collapse: lets the user fold the title block away to give the map
+  // more breathing room (manual toggle for now; scroll-driven could replace
+  // it later but needs main-layout reflow to work).
+  const [heroCollapsed, setHeroCollapsed] = useState(false);
 
   useEffect(() => {
     if (pin) setSelectedId(pin);
   }, [pin]);
 
-  return (
-    <PhoneShell>
-      <div className="px-6 pt-4">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-accent-hot">Explore</p>
-        <h1 className="mt-3 text-[36px] leading-[0.95] font-extrabold tracking-[-0.02em] uppercase">
-          a city,<br />
-          <span className="text-gradient-neon">by feeling</span>
-        </h1>
+  // Wheel-driven hero toggle: trackpad two-finger swipe becomes the
+  // collapse/expand trigger. We intercept wheel events at the document
+  // level and preventDefault so no element (main, body, etc.) actually
+  // scrolls — the wheel intent is consumed purely as a state toggle.
+  // Cooldown 350ms keeps a single continuous gesture from flickering.
+  // Carousel horizontal scroll keeps working because it lives inside the
+  // BottomCarousel scroller and its events are mostly deltaX, not deltaY.
+  useEffect(() => {
+    let lastFireMs = 0;
+    const COOLDOWN_MS = 350;
+    const onWheel = (e: WheelEvent) => {
+      // Carousel uses deltaX for horizontal scroll; never block those.
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+      // Block any document/main scroll caused by vertical wheel.
+      e.preventDefault();
+      const now = performance.now();
+      if (now - lastFireMs < COOLDOWN_MS) return;
+      if (Math.abs(e.deltaY) < 4) return;
+      if (e.deltaY > 0) setHeroCollapsed(true);
+      else setHeroCollapsed(false);
+      lastFireMs = now;
+    };
+    window.addEventListener("wheel", onWheel, { passive: false });
+    return () => window.removeEventListener("wheel", onWheel);
+  }, []);
 
-        <div className="mt-5 flex gap-2">
-          <div className="flex-1 h-11 rounded-full glass flex items-center px-4 gap-2">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Search a place, a mood, a song…</span>
-          </div>
-          <button className="h-11 w-11 rounded-full glass grid place-items-center">
-            <Layers className="h-4 w-4" />
-          </button>
-        </div>
+  const availableMoods = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of PINS) for (const t of p.tags) set.add(t);
+    return Array.from(set);
+  }, []);
+
+  const toggleMood = (m: string) =>
+    setActiveMoods((prev) => {
+      const next = new Set(prev);
+      if (next.has(m)) next.delete(m);
+      else next.add(m);
+      return next;
+    });
+
+  const matchesFilter = (pinTags: readonly string[]) => {
+    if (activeMoods.size === 0) return true;
+    return pinTags.some((t) => activeMoods.has(t));
+  };
+
+  // Pins fed to the carousel — when filter is active, only matching pins
+  // appear in the carousel (same component, contextual content).
+  const visiblePins = useMemo(
+    () => PINS.filter((p) => matchesFilter(p.tags)),
+    // matchesFilter closes over activeMoods; depend on the set's identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeMoods],
+  );
+
+  // If the current selection got filtered out, snap to the first visible pin.
+  useEffect(() => {
+    if (visiblePins.length === 0) return;
+    if (!visiblePins.find((p) => p.id === selectedId)) {
+      setSelectedId(visiblePins[0].id);
+    }
+  }, [visiblePins, selectedId]);
+
+  return (
+    <PhoneShell backdropStyle={{ background: "oklch(0.18 0.05 295)" }}>
+      {/* Map plate — img + pins + pulse-ring share this transform wrapper
+          so when we scale/translate the map, pins ride along with their
+          street blocks instead of decoupling. Toolbar/scrims/carousel sit
+          outside, since they're chrome and shouldn't follow the map. */}
+      <div
+        className="absolute inset-0"
+        style={{ transform: "scale(1.1) translateY(28px)", transformOrigin: "center" }}
+      >
+        {/* Map is the canvas — fills entire wrapper.
+            objectPosition tuned so UTS sits horizontally centred. */}
+        <img
+          src="/maps/sydney.png"
+          alt="Sydney"
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover select-none pointer-events-none"
+          style={{
+            // 46% horizontal centres UTS; 100% vertical aligns the map's
+            // bottom edge with the container's bottom — so the visible
+            // landmark zone stays anchored to the carousel/nav, and any
+            // height changes (chevron collapse, etc.) crop from the top
+            // instead of revealing the empty area below the image.
+            objectPosition: "46% 100%",
+            // grayscale → brighten → low contrast → tinted plum-grey via
+            // sepia + hue-rotate so the map carries our chrome's purple cast
+            filter: "grayscale(1) brightness(1.05) contrast(0.7) sepia(0.25) hue-rotate(220deg)",
+          }}
+        />
       </div>
 
-      <div className="mx-5 mt-5 relative aspect-[4/5] rounded-[28px] overflow-hidden border border-white/10 bg-surface">
-        <svg viewBox="0 0 100 125" className="absolute inset-0 w-full h-full opacity-50">
-          <defs>
-            <radialGradient id="g1" cx="40%" cy="35%">
-              <stop offset="0%" stopColor="oklch(0.4 0.18 295)" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="transparent" />
-            </radialGradient>
-            <radialGradient id="g2" cx="75%" cy="70%">
-              <stop offset="0%" stopColor="oklch(0.55 0.16 60)" stopOpacity="0.55" />
-              <stop offset="100%" stopColor="transparent" />
-            </radialGradient>
-          </defs>
-          <rect width="100" height="125" fill="url(#g1)" />
-          <rect width="100" height="125" fill="url(#g2)" />
-          {Array.from({ length: 8 }).map((_, i) => (
-            <ellipse
-              key={i}
-              cx="50" cy="62"
-              rx={20 + i * 7} ry={14 + i * 5}
-              fill="none"
-              stroke="oklch(0.85 0.08 70 / 0.08)"
-              strokeWidth="0.2"
-            />
-          ))}
-          <path
-            d="M 8 22 Q 30 40, 55 50 T 92 92"
-            stroke="oklch(0.82 0.13 65 / 0.7)"
-            strokeWidth="0.6"
-            strokeDasharray="1.5 1.5"
-            fill="none"
-          />
-        </svg>
+      {/* Bottom scrim — anchors map to nav and gives the carousel a clean
+          landing surface against the now-light map */}
+      <div
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background/85 to-transparent pointer-events-none"
+      />
 
-        {PINS.map((p) => {
-          const active = p.id === selectedId;
-          return (
+      {/* Hero — full-width band that visually merges with the status bar
+          (PhoneShell receives the same plum-purple backdropStyle), so
+          status bar and hero read as one continuous surface. Two modes:
+            • expanded → kicker + thesis + search row (default)
+            • collapsed → search row only (chevron toggle) */}
+      <div
+        className={`absolute inset-x-0 top-0 z-30 px-5 transition-all duration-300 ease-out ${
+          heroCollapsed ? "pt-2 pb-3" : "pt-2 pb-6"
+        }`}
+        style={{ background: "oklch(0.18 0.05 295)" }}
+      >
+        {/* Collapsible title block — wrapped so transition shrinks max-height
+            and fades opacity together (avoids the abrupt pop of unmount). */}
+        <div
+          className={`overflow-hidden transition-all duration-300 ease-out ${
+            heroCollapsed ? "max-h-0 opacity-0 -mb-1" : "max-h-32 opacity-100 mb-4"
+          }`}
+        >
+          <p
+            className="text-[10px] font-semibold uppercase tracking-[0.22em]"
+            style={{ color: "oklch(0.65 0.22 295)" }}
+          >
+            Explore by Map
+          </p>
+          <h1 className="mt-1.5 text-[22px] leading-[1.1] font-extrabold tracking-tight text-white">
+            A city, by feeling.
+          </h1>
+        </div>
+        <div className="flex items-center gap-2">
+            <div className="flex-1 h-11 rounded-pill bg-white/10 border border-white/15 flex items-center px-4 gap-2 min-w-0">
+              <Search className="h-4 w-4 text-white/65 shrink-0" />
+              <span className="text-[13px] text-white/65 truncate">
+                Search a place, a mood, a song…
+              </span>
+            </div>
             <button
-              key={p.id}
-              onClick={() => setSelectedId(p.id)}
-              aria-label={`Open playlist for ${p.label}`}
-              className="group absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center focus:outline-none"
-              style={{ left: `${p.x}%`, top: `${p.y}%`, zIndex: active ? 30 : 10 }}
+              onClick={() => setFilterOpen((v) => !v)}
+              aria-label="Filter by mood"
+              aria-expanded={filterOpen}
+              className={`relative h-11 w-11 rounded-full grid place-items-center transition-colors shrink-0 ${
+                activeMoods.size > 0
+                  ? "bg-white text-zinc-900"
+                  : "bg-white/10 border border-white/15 text-white"
+              }`}
             >
+            <SlidersHorizontal className="h-4 w-4" strokeWidth={2.4} />
+            {activeMoods.size > 0 && (
+              <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-accent-hot text-[9px] font-bold text-white grid place-items-center">
+                {activeMoods.size}
+              </span>
+            )}
+          </button>
+          {/* Hero collapse toggle — sits in the search row so it always has
+              a stable position (no overlap with filter no matter the state). */}
+          <button
+            onClick={() => setHeroCollapsed((v) => !v)}
+            aria-label={heroCollapsed ? "Show map title" : "Hide map title"}
+            aria-expanded={!heroCollapsed}
+            className="h-11 w-7 grid place-items-center text-white/55 hover:text-white/85 transition-colors shrink-0"
+          >
+            <ChevronUp
+              className={`h-4 w-4 transition-transform duration-300 ${heroCollapsed ? "rotate-180" : ""}`}
+              strokeWidth={2.4}
+            />
+          </button>
+        </div>
+
+        {/* Filter dropdown — sits *below* the search row inside the hero
+            band so opening the filter doesn't push the map down — instead
+            it just expands the bottom edge of the surface-elevated band. */}
+        {filterOpen && (
+          <div className="mt-3 rounded-card-lg bg-zinc-900 border border-white/15 p-4 shadow-2xl">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">
+                Filter by mood
+              </p>
+              {activeMoods.size > 0 && (
+                <button
+                  onClick={() => setActiveMoods(new Set())}
+                  className="text-[10px] font-semibold uppercase tracking-wider text-white/50 hover:text-white transition-colors"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {availableMoods.map((m) => {
+                const on = activeMoods.has(m);
+                return (
+                  <button
+                    key={m}
+                    onClick={() => toggleMood(m)}
+                    className={`px-3 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-wider transition-colors ${
+                      on
+                        ? "bg-white text-zinc-900"
+                        : "bg-white/10 text-white/70 hover:bg-white/20"
+                    }`}
+                  >
+                    {m}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Pins — share the map's transform so they ride along with their
+          street blocks. inset-0 wrapper means each pin's left/top% is
+          measured against the same coordinate space as the map. */}
+      <div
+        className="absolute inset-0"
+        style={{ transform: "scale(1.1) translateY(28px)", transformOrigin: "center" }}
+      >
+      {PINS.map((p) => {
+        const active = p.id === selectedId;
+        const matches = matchesFilter(p.tags);
+        // Active pin gets a chunky cover-tile treatment (airbnb-style).
+        // Non-active pins stay as small dots so the active one really pops.
+        const firstSong = p.songs[0];
+        const cover = firstSong ? getSongTheme(firstSong.song, firstSong.artist).cover : null;
+        return (
+          <button
+            key={p.id}
+            onClick={() => setSelectedId(p.id)}
+            aria-label={`Open ${p.label}`}
+            className={`group absolute -translate-x-1/2 -translate-y-1/2 focus:outline-none transition-all duration-300 ${
+              matches ? "opacity-100" : "opacity-25 scale-75"
+            }`}
+            style={{ left: `${p.x}%`, top: `${p.y}%`, zIndex: active ? 5 : 1 }}
+          >
+            {active ? (
+              // Active = cover-tile pin (airbnb listing style)
+              <div className="relative flex flex-col items-center">
+                <div className="relative h-12 w-12 rounded-xl overflow-hidden ring-2 ring-white shadow-2xl bg-zinc-800">
+                  {cover ? (
+                    <img
+                      src={cover}
+                      alt=""
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 grid place-items-center text-white text-[18px]">🎵</div>
+                  )}
+                </div>
+                {/* Speech-bubble pointer */}
+                <span
+                  aria-hidden
+                  className="absolute -bottom-1 h-3 w-3 rotate-45 bg-white"
+                />
+              </div>
+            ) : (
+              // Inactive = small dark dot + (optional) ping for hot pins.
+              // Dark fill so dots stay visible on the light grayscale map.
               <div className="relative">
-                {p.hot && !active && (
-                  <span className="absolute inset-0 rounded-full bg-accent/40 animate-ping" />
+                {p.hot && matches && (
+                  <span className="absolute inset-0 rounded-full bg-zinc-900/40 animate-ping" />
                 )}
                 <span
-                  className={`relative block rounded-full transition-all duration-300 ${
-                    active
-                      ? "h-4 w-4 bg-accent ring-4 ring-accent/30 shadow-accent"
-                      : p.hot
-                      ? "h-3 w-3 bg-accent shadow-accent group-hover:scale-125"
-                      : "h-2.5 w-2.5 bg-primary/80 group-hover:bg-accent group-hover:scale-125"
+                  className={`relative block rounded-full ring-2 ring-white transition-all duration-300 ${
+                    p.hot
+                      ? "h-3 w-3 bg-zinc-900 shadow-lg group-hover:scale-125"
+                      : "h-2.5 w-2.5 bg-zinc-900/85 group-hover:bg-zinc-900 group-hover:scale-125"
                   }`}
                 />
               </div>
-              <div
-                className={`mt-1.5 px-2 py-0.5 rounded-md backdrop-blur-sm border transition-all ${
-                  active
-                    ? "bg-accent text-accent-foreground border-accent scale-105"
-                    : "bg-background/80 border-white/10 opacity-90 group-hover:opacity-100"
-                }`}
-              >
-                <p className="text-[9px] font-medium leading-tight whitespace-nowrap">{p.label}</p>
-                <p
-                  className={`text-[8px] font-mono leading-tight ${
-                    active ? "text-accent-foreground/80" : "text-accent"
-                  }`}
-                >
-                  {p.count} traces
-                </p>
-              </div>
-            </button>
-          );
-        })}
+            )}
+          </button>
+        );
+      })}
 
+      {/* "you are here" pulse anchored to UTS — only visible when UTS isn't
+          the active selection (otherwise the cover-pin overlaps it) */}
+      {selectedId !== YOU_ID && (
         <div
           className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none"
           style={{
             left: `${PINS.find((p) => p.id === YOU_ID)!.x}%`,
             top: `${PINS.find((p) => p.id === YOU_ID)!.y}%`,
+            zIndex: 1,
           }}
         >
           <div className="pulse-ring relative h-4 w-4 rounded-full">
-            <span className="absolute inset-1 rounded-full bg-accent shadow-accent" />
+            <span className="absolute inset-1 rounded-full bg-zinc-900 shadow-lg" />
           </div>
         </div>
+      )}
       </div>
 
-      {!selected && (
-        <section className="mx-6 mt-5 rounded-2xl p-4 glass border border-white/5">
-          <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-accent">Tap a pin</p>
-          <p className="mt-2 text-[14px] leading-snug text-muted-foreground">
-            Each place holds its own quiet listening. Tap to hear what plays here, right now.
-          </p>
-        </section>
-      )}
-
-      <LocationDrawer pin={selected} onOpenChange={(open) => !open && setSelectedId(null)} />
+      {/* Carousel — replaces LocationDrawer; tap card → /location/$id */}
+      <BottomCarousel
+        pins={visiblePins}
+        selectedId={selectedId}
+        onSelect={setSelectedId}
+        expanded={carouselExpanded}
+        onToggleExpand={() => setCarouselExpanded((v) => !v)}
+      />
     </PhoneShell>
   );
 }
