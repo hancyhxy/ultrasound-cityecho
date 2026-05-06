@@ -1,3 +1,5 @@
+import { assetPath } from "./utils";
+
 /**
  * Song-level theme tokens — cover image + color palette per song.
  *
@@ -279,6 +281,10 @@ const THEMES: Record<string, SongTheme> = {
     prompt: "What were you, before you said it out loud?",
   },
 };
+
+for (const theme of Object.values(THEMES)) {
+  theme.cover = assetPath(theme.cover);
+}
 
 const FALLBACK: SongTheme = {
   cover: "",

@@ -6,6 +6,7 @@ import { PhoneShell } from "@/components/PhoneShell";
 import { BottomCarousel } from "@/components/BottomCarousel";
 import { PINS } from "@/lib/seed-data";
 import { getSongTheme } from "@/lib/song-themes";
+import { assetPath } from "@/lib/utils";
 
 const indexSearchSchema = z.object({
   pin: z.string().optional(),
@@ -93,7 +94,7 @@ function MapScreen() {
         {/* Map is the canvas — fills entire wrapper.
             objectPosition tuned so UTS sits horizontally centred. */}
         <img
-          src="/maps/sydney.png"
+          src={assetPath("/maps/sydney.png")}
           alt="Sydney"
           aria-hidden
           className="absolute inset-0 h-full w-full object-cover select-none pointer-events-none"

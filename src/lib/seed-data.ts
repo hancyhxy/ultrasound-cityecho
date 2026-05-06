@@ -1,4 +1,5 @@
 import { getUserTraces, isBrowser, type UserTrace } from "./storage";
+import { assetPath } from "./utils";
 
 export type Song = { song: string; artist: string };
 
@@ -757,6 +758,10 @@ export const FEED: Trace[] = [
   },
 ];
 
+for (const trace of FEED) {
+  if (trace.userCover) trace.userCover = assetPath(trace.userCover);
+}
+
 /** Find traces relevant to a playing song, with fallback to same location. */
 export function findTracesForSong(song: string | undefined, artist: string | undefined, locationId: string | undefined): Trace[] {
   if (!song || !artist) return [];
@@ -1187,5 +1192,5 @@ function hashStr(s: string): number {
 }
 export function getUserAvatar(userId: string): string {
   const idx = (hashStr(userId) % USER_AVATAR_COUNT) + 1;
-  return `/user_profile_img/user-${idx}.png`;
+  return assetPath(`/user_profile_img/user-${idx}.png`);
 }
