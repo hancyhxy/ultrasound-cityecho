@@ -21,9 +21,7 @@ export const Route = createFileRoute("/playlist")({
   component: PlaylistScreen,
 });
 
-type Card =
-  | { kind: "seed"; data: SeedPlaylist }
-  | { kind: "user"; data: UserPlaylist };
+type Card = { kind: "seed"; data: SeedPlaylist } | { kind: "user"; data: UserPlaylist };
 
 function PlaylistScreen() {
   const [userPlaylists, setUserPlaylists] = useState<UserPlaylist[]>([]);
@@ -33,7 +31,13 @@ function PlaylistScreen() {
     // One-time cleanup: remove user playlists whose songs reference tracks that
     // were retired during ITER-9 (Bon Iver, Cha Cha, etc). These show as plum
     // placeholders because their cover lookups now miss song-themes.
-    const RETIRED_ARTISTS = new Set(["Bon Iver", "Freddie Dredd", "Aphex Twin", "Brian Eno", "Neil Young"]);
+    const RETIRED_ARTISTS = new Set([
+      "Bon Iver",
+      "Freddie Dredd",
+      "Aphex Twin",
+      "Brian Eno",
+      "Neil Young",
+    ]);
     const all = getUserPlaylists();
     for (const p of all) {
       const allRetired = p.songs.length > 0 && p.songs.every((s) => RETIRED_ARTISTS.has(s.artist));
@@ -60,7 +64,9 @@ function PlaylistScreen() {
             Yours
           </p>
           <h1 className="mt-2 text-[28px] leading-[1.05] font-extrabold tracking-tight text-white">
-            The places you<br />come back to.
+            The places you
+            <br />
+            come back to.
           </h1>
         </div>
         <button
@@ -152,9 +158,7 @@ function PlaylistCard({ card, onDelete }: { card: Card; onDelete: () => void }) 
               Yours
             </p>
           )}
-          <p className="text-[13px] font-bold text-white leading-tight line-clamp-2">
-            {data.name}
-          </p>
+          <p className="text-[13px] font-bold text-white leading-tight line-clamp-2">{data.name}</p>
           <p className="text-[10px] text-white/55 mt-1">{count} songs</p>
           {data.moods.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
@@ -174,13 +178,7 @@ function PlaylistCard({ card, onDelete }: { card: Card; onDelete: () => void }) 
   );
 }
 
-function CreatePlaylistModal({
-  onClose,
-  onSaved,
-}: {
-  onClose: () => void;
-  onSaved: () => void;
-}) {
+function CreatePlaylistModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
   const [name, setName] = useState("");
   const [moods, setMoods] = useState<string[]>([]);
   const [locationId, setLocationId] = useState<string | undefined>(undefined);
@@ -198,19 +196,30 @@ function CreatePlaylistModal({
 
   return (
     <div className="absolute inset-0 z-50 flex items-end" onClick={onClose}>
-      <div className="absolute inset-0 bg-background/70 backdrop-blur-md" />
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-md" />
       <div
-        className="relative w-full glass-strong rounded-t-[28px] p-6 pb-8 border-t border-white/10 animate-in slide-in-from-bottom duration-300 max-h-[85%] overflow-y-auto scrollbar-none"
+        className="relative w-full rounded-t-[28px] bg-zinc-900/95 backdrop-blur-md p-6 pb-8 border-t border-white/10 animate-in slide-in-from-bottom duration-300 max-h-[88%] overflow-y-auto scrollbar-none"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mx-auto h-1 w-10 rounded-full bg-white/20 mb-4" />
+        <div className="mx-auto h-1 w-10 rounded-full bg-white/15 mb-5" />
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="font-extrabold text-[22px] leading-tight text-white">A new place to return to.</h3>
-            <p className="mt-1 text-xs text-white/60">Name it. Tag the mood. Songs come later.</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">
+              New
+            </p>
+            <h3 className="mt-2 text-[28px] leading-[1.05] font-extrabold tracking-tight text-white">
+              A new place to return to.
+            </h3>
+            <p className="mt-2 text-[13px] text-white/55">
+              Name it. Tag the mood. Songs come later.
+            </p>
           </div>
-          <button onClick={onClose} aria-label="Close" className="h-8 w-8 grid place-items-center rounded-full bg-white/5">
-            <X className="h-4 w-4" />
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="h-9 w-9 grid place-items-center rounded-full bg-white/8 hover:bg-white/12 transition-colors shrink-0"
+          >
+            <X className="h-4 w-4 text-white" />
           </button>
         </div>
 
@@ -221,19 +230,21 @@ function CreatePlaylistModal({
           placeholder="e.g. Sunday on the line"
           maxLength={60}
           autoFocus
-          className="mt-5 w-full h-12 rounded-2xl bg-background/50 border border-white/10 px-4 text-[15px] focus:outline-none focus:border-accent/40 placeholder:text-muted-foreground/60"
+          className="mt-7 w-full rounded-2xl bg-white/5 border border-white/8 px-4 py-3 text-[14px] text-white focus:outline-none focus:border-white/25 focus:bg-white/8 transition-colors placeholder:text-white/35"
         />
 
-        <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60 mb-2">Moods</p>
+        <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55 mb-3">
+          Moods
+        </p>
         <div className="flex flex-wrap gap-2">
           {ALL_MOODS.map((m) => (
             <button
               key={m}
               onClick={() => toggleMood(m)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              className={`px-3.5 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-[0.18em] transition-colors ${
                 moods.includes(m)
                   ? "bg-white text-zinc-900"
-                  : "bg-white/10 text-white/70 hover:bg-white/20"
+                  : "bg-white/8 text-white/70 hover:bg-white/12 hover:text-white"
               }`}
             >
               {m}
@@ -241,16 +252,18 @@ function CreatePlaylistModal({
           ))}
         </div>
 
-        <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60 mb-2">Bind to a place (optional)</p>
+        <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55 mb-3">
+          Bind to a place (optional)
+        </p>
         <div className="flex flex-wrap gap-2">
           {PINS.map((p) => (
             <button
               key={p.id}
               onClick={() => setLocationId(locationId === p.id ? undefined : p.id)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1 ${
+              className={`px-3.5 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-[0.18em] transition-colors flex items-center gap-1.5 ${
                 locationId === p.id
                   ? "bg-white text-zinc-900"
-                  : "bg-white/10 text-white/70 hover:bg-white/20 border border-transparent"
+                  : "bg-white/8 text-white/70 hover:bg-white/12 hover:text-white"
               }`}
             >
               <MapPin className="h-3 w-3" />
@@ -262,7 +275,7 @@ function CreatePlaylistModal({
         <button
           onClick={handleSave}
           disabled={!canSave}
-          className="mt-7 w-full h-12 rounded-2xl bg-white text-zinc-900 font-extrabold uppercase tracking-[0.14em] text-[13px] hover:opacity-90 transition-opacity shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
+          className="mt-7 w-full h-12 rounded-2xl bg-white text-zinc-900 text-[13px] font-extrabold uppercase tracking-[0.18em] hover:bg-white/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Make it
         </button>

@@ -67,7 +67,7 @@ export function LocationDrawer({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-accent">
-                {pin.count} traces · here
+                {pin.count} stories · here
               </p>
               <h3 className="mt-1 font-display text-[22px] leading-tight">{pin.label}</h3>
               <p className="mt-1 text-[13px] text-muted-foreground italic">{pin.mood}</p>

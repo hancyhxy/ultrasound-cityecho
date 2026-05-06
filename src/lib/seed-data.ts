@@ -1062,6 +1062,63 @@ export function getMyHomePlace(): { pin: Pin; tracesCount: number } | undefined 
   return pin ? { pin, tracesCount: topCount } : undefined;
 }
 
+/** Year-in-review counters for the /me dashboard top row. All four are
+    derived from the same allMyTraces() corpus so they stay coherent
+    when user-written stories are added. */
+export function getMyYearStats(): {
+  stories: number;
+  songs: number;
+  places: number;
+  strangers: number;
+} {
+  const all = allMyTraces();
+  const songs = new Set(all.map((t) => `${t.song}::${t.artist}`));
+  const places = new Set(all.map((t) => t.locationId).filter(Boolean));
+  // "Strangers who wrote with you" = unique FEED userIds who wrote about
+  // a song the user also wrote about.
+  const myKeys = new Set(all.map((t) => `${t.song}::${t.artist}`));
+  const strangers = new Set(
+    FEED.filter((f) => myKeys.has(`${f.forSong.song}::${f.forSong.artist}`)).map((f) => f.userId)
+  );
+  return {
+    stories: all.length,
+    songs: songs.size,
+    places: places.size,
+    strangers: strangers.size,
+  };
+}
+
+/** Top N songs by story count (how many times the user wrote about each
+    song). Returned in descending order. */
+export function getMyTopSongs(
+  n: number
+): { song: string; artist: string; storyCount: number }[] {
+  const counts = new Map<string, { song: string; artist: string; storyCount: number }>();
+  for (const t of allMyTraces()) {
+    const key = `${t.song}::${t.artist}`;
+    const cur = counts.get(key);
+    if (cur) cur.storyCount += 1;
+    else counts.set(key, { song: t.song, artist: t.artist, storyCount: 1 });
+  }
+  return [...counts.values()].sort((a, b) => b.storyCount - a.storyCount).slice(0, n);
+}
+
+/** Top N places by story count. Used to render a horizontal row of
+    FourGridCover tiles for "places that knew your name". */
+export function getMyTopPlaces(n: number): { pin: Pin; storyCount: number }[] {
+  const counts = new Map<string, number>();
+  for (const t of allMyTraces()) {
+    if (!t.locationId) continue;
+    counts.set(t.locationId, (counts.get(t.locationId) ?? 0) + 1);
+  }
+  const entries: { pin: Pin; storyCount: number }[] = [];
+  for (const [id, storyCount] of counts) {
+    const pin = PINS.find((p) => p.id === id);
+    if (pin) entries.push({ pin, storyCount });
+  }
+  return entries.sort((a, b) => b.storyCount - a.storyCount).slice(0, n);
+}
+
 /**
  * The "you were not alone" pair: a song the user wrote for that a stranger
  * also wrote for. We pick the user's earliest such trace and the closest

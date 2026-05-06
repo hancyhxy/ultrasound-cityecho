@@ -178,8 +178,7 @@
     -webkit-font-smoothing: antialiased;
   }
   html, body {
-    background-image: var(--gradient-night);
-    background-attachment: fixed;
+    background-color: var(--color-background);
     height: 100vh;
     overflow: hidden;
     overscroll-behavior: none;

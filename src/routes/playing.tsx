@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronDown, Heart, MapPin, Pin } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ChevronLeft, Heart, MapPin, Pin } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { PhoneShell } from "@/components/PhoneShell";
@@ -30,6 +30,7 @@ const DEFAULTS = {
 } as const;
 
 function PlayingScreen() {
+  const navigate = useNavigate();
   const search = Route.useSearch();
   const song = search.song ?? DEFAULTS.song;
   const artist = search.artist ?? DEFAULTS.artist;
@@ -61,13 +62,21 @@ function PlayingScreen() {
       {/* Slim chrome — back arrow + listening-at label. No view toggles,
           no flip animation, no story face. Single-purpose: play a song. */}
       <div className="relative z-10 px-5 pt-3 flex items-center justify-between">
-        <Link to="/" className="h-9 w-9 grid place-items-center rounded-full bg-white/10 backdrop-blur-sm">
-          <ChevronDown className="h-4 w-4" />
-        </Link>
+        <button
+          onClick={() => {
+            if (window.history.length > 1) {
+              window.history.back();
+              return;
+            }
+            navigate({ to: "/playlist" });
+          }}
+          aria-label="Go back"
+          className="h-9 w-9 grid place-items-center rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/15 transition-colors"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
         <div className="text-center">
-          <p className="text-[9px] uppercase tracking-[0.18em] text-white/60">
-            Listening at
-          </p>
+          <p className="text-[9px] uppercase tracking-[0.18em] text-white/60">Listening at</p>
           <p className="text-xs font-medium text-white">{location.label}</p>
         </div>
         {/* Leave-a-trace entry — sits where the empty placeholder was so
@@ -75,7 +84,7 @@ function PlayingScreen() {
             feed) where the user pins a new trace tied to this song. */}
         <Link
           to="/traces"
-          aria-label="Leave a trace for this song"
+          aria-label="Leave a story for this song"
           className="h-9 w-9 grid place-items-center rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/15 transition-colors"
         >
           <Pin className="h-4 w-4" strokeWidth={2.2} />
@@ -175,7 +184,6 @@ function SongPanel({
 
   return (
     <section className="snap-start h-full w-full px-5 py-6 flex flex-col justify-center">
-
       {/* Middle: song card — narrower than the panel so the song-themed
           backdrop reads as the page mood. Solid dark grey (no blur, no
           backdrop tint bleed) so the card is a discrete object floating
@@ -226,8 +234,6 @@ function SongPanel({
           </p>
         </div>
       </div>
-
     </section>
   );
 }
-

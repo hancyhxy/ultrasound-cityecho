@@ -23,6 +23,9 @@ export const Route = createFileRoute("/")({
 });
 
 const YOU_ID = "uts";
+const APP_BACKDROP = "oklch(0.14 0.03 290)";
+const HERO_SURFACE = "rgba(17, 11, 28, 0.84)";
+const HERO_ACCENT = "#a97bff";
 
 function MapScreen() {
   const { pin } = Route.useSearch();
@@ -31,40 +34,11 @@ function MapScreen() {
   const [activeMoods, setActiveMoods] = useState<Set<string>>(new Set());
   const [filterOpen, setFilterOpen] = useState(false);
   const [carouselExpanded, setCarouselExpanded] = useState(true);
-  // Hero collapse: lets the user fold the title block away to give the map
-  // more breathing room (manual toggle for now; scroll-driven could replace
-  // it later but needs main-layout reflow to work).
   const [heroCollapsed, setHeroCollapsed] = useState(false);
 
   useEffect(() => {
     if (pin) setSelectedId(pin);
   }, [pin]);
-
-  // Wheel-driven hero toggle: trackpad two-finger swipe becomes the
-  // collapse/expand trigger. We intercept wheel events at the document
-  // level and preventDefault so no element (main, body, etc.) actually
-  // scrolls — the wheel intent is consumed purely as a state toggle.
-  // Cooldown 350ms keeps a single continuous gesture from flickering.
-  // Carousel horizontal scroll keeps working because it lives inside the
-  // BottomCarousel scroller and its events are mostly deltaX, not deltaY.
-  useEffect(() => {
-    let lastFireMs = 0;
-    const COOLDOWN_MS = 350;
-    const onWheel = (e: WheelEvent) => {
-      // Carousel uses deltaX for horizontal scroll; never block those.
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
-      // Block any document/main scroll caused by vertical wheel.
-      e.preventDefault();
-      const now = performance.now();
-      if (now - lastFireMs < COOLDOWN_MS) return;
-      if (Math.abs(e.deltaY) < 4) return;
-      if (e.deltaY > 0) setHeroCollapsed(true);
-      else setHeroCollapsed(false);
-      lastFireMs = now;
-    };
-    window.addEventListener("wheel", onWheel, { passive: false });
-    return () => window.removeEventListener("wheel", onWheel);
-  }, []);
 
   const availableMoods = useMemo(() => {
     const set = new Set<string>();
@@ -103,7 +77,11 @@ function MapScreen() {
   }, [visiblePins, selectedId]);
 
   return (
-    <PhoneShell backdropStyle={{ background: "oklch(0.18 0.05 295)" }}>
+    <PhoneShell
+      backdropStyle={{ background: APP_BACKDROP }}
+      scrollable={false}
+      showStatusBar={false}
+    >
       {/* Map plate — img + pins + pulse-ring share this transform wrapper
           so when we scale/translate the map, pins ride along with their
           street blocks instead of decoupling. Toolbar/scrims/carousel sit
@@ -140,38 +118,37 @@ function MapScreen() {
         className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background/85 to-transparent pointer-events-none"
       />
 
-      {/* Hero — full-width band that visually merges with the status bar
-          (PhoneShell receives the same plum-purple backdropStyle), so
-          status bar and hero read as one continuous surface. Two modes:
-            • expanded → kicker + thesis + search row (default)
-            • collapsed → search row only (chevron toggle) */}
-      <div
-        className={`absolute inset-x-0 top-0 z-30 px-5 transition-all duration-300 ease-out ${
-          heroCollapsed ? "pt-2 pb-3" : "pt-2 pb-6"
-        }`}
-        style={{ background: "oklch(0.18 0.05 295)" }}
-      >
-        {/* Collapsible title block — wrapped so transition shrinks max-height
-            and fades opacity together (avoids the abrupt pop of unmount). */}
+      {/* Hero — restored as a rounded dark card that floats over the map,
+          with a soft fade underneath so the transition into the map isn't abrupt. */}
+      <div className="absolute inset-x-0 top-0 z-30">
         <div
-          className={`overflow-hidden transition-all duration-300 ease-out ${
-            heroCollapsed ? "max-h-0 opacity-0 -mb-1" : "max-h-32 opacity-100 mb-4"
-          }`}
+          className="relative overflow-hidden rounded-b-[34px] border-b border-white/10 px-5 pt-2 pb-5 shadow-[0_24px_60px_rgba(0,0,0,0.34)] backdrop-blur-2xl"
+          style={{ background: HERO_SURFACE }}
         >
-          <p
-            className="text-[10px] font-semibold uppercase tracking-[0.22em]"
-            style={{ color: "oklch(0.65 0.22 295)" }}
+          <div className="mb-3 flex items-center justify-between px-1 text-[11px] font-mono text-white/48">
+            <span>9:41</span>
+            <span>100%</span>
+          </div>
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-out ${
+              heroCollapsed ? "max-h-0 opacity-0 -mb-1" : "max-h-32 opacity-100 mb-4"
+            }`}
           >
-            Explore by Map
-          </p>
-          <h1 className="mt-1.5 text-[22px] leading-[1.1] font-extrabold tracking-tight text-white">
-            A city, by feeling.
-          </h1>
-        </div>
-        <div className="flex items-center gap-2">
-            <div className="flex-1 h-11 rounded-pill bg-white/10 border border-white/15 flex items-center px-4 gap-2 min-w-0">
-              <Search className="h-4 w-4 text-white/65 shrink-0" />
-              <span className="text-[13px] text-white/65 truncate">
+            <p
+              className="text-[10px] font-semibold uppercase tracking-[0.22em]"
+              style={{ color: HERO_ACCENT }}
+            >
+              Explore by Map
+            </p>
+            <h1 className="mt-1.5 text-[22px] leading-[1.1] font-extrabold tracking-tight text-white">
+              A city, by feeling.
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="flex-1 h-11 rounded-pill bg-white/8 border border-white/12 flex items-center px-4 gap-2 min-w-0">
+              <Search className="h-4 w-4 text-white/70 shrink-0" />
+              <span className="text-[13px] text-white/70 truncate">
                 Search a place, a mood, a song…
               </span>
             </div>
@@ -182,69 +159,69 @@ function MapScreen() {
               className={`relative h-11 w-11 rounded-full grid place-items-center transition-colors shrink-0 ${
                 activeMoods.size > 0
                   ? "bg-white text-zinc-900"
-                  : "bg-white/10 border border-white/15 text-white"
+                  : "bg-white/8 border border-white/12 text-white"
               }`}
             >
-            <SlidersHorizontal className="h-4 w-4" strokeWidth={2.4} />
-            {activeMoods.size > 0 && (
-              <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-accent-hot text-[9px] font-bold text-white grid place-items-center">
-                {activeMoods.size}
-              </span>
-            )}
-          </button>
-          {/* Hero collapse toggle — sits in the search row so it always has
-              a stable position (no overlap with filter no matter the state). */}
-          <button
-            onClick={() => setHeroCollapsed((v) => !v)}
-            aria-label={heroCollapsed ? "Show map title" : "Hide map title"}
-            aria-expanded={!heroCollapsed}
-            className="h-11 w-7 grid place-items-center text-white/55 hover:text-white/85 transition-colors shrink-0"
-          >
-            <ChevronUp
-              className={`h-4 w-4 transition-transform duration-300 ${heroCollapsed ? "rotate-180" : ""}`}
-              strokeWidth={2.4}
-            />
-          </button>
-        </div>
-
-        {/* Filter dropdown — sits *below* the search row inside the hero
-            band so opening the filter doesn't push the map down — instead
-            it just expands the bottom edge of the surface-elevated band. */}
-        {filterOpen && (
-          <div className="mt-3 rounded-card-lg bg-zinc-900 border border-white/15 p-4 shadow-2xl">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">
-                Filter by mood
-              </p>
+              <SlidersHorizontal className="h-4 w-4" strokeWidth={2.4} />
               {activeMoods.size > 0 && (
-                <button
-                  onClick={() => setActiveMoods(new Set())}
-                  className="text-[10px] font-semibold uppercase tracking-wider text-white/50 hover:text-white transition-colors"
-                >
-                  Clear
-                </button>
+                <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-accent-hot text-[9px] font-bold text-white grid place-items-center">
+                  {activeMoods.size}
+                </span>
               )}
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {availableMoods.map((m) => {
-                const on = activeMoods.has(m);
-                return (
-                  <button
-                    key={m}
-                    onClick={() => toggleMood(m)}
-                    className={`px-3 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-wider transition-colors ${
-                      on
-                        ? "bg-white text-zinc-900"
-                        : "bg-white/10 text-white/70 hover:bg-white/20"
-                    }`}
-                  >
-                    {m}
-                  </button>
-                );
-              })}
-            </div>
+            </button>
+            <button
+              onClick={() => setHeroCollapsed((v) => !v)}
+              aria-label={heroCollapsed ? "Show map title" : "Hide map title"}
+              aria-expanded={!heroCollapsed}
+              className="h-11 w-11 rounded-full grid place-items-center bg-white/8 border border-white/12 text-white/70 hover:text-white transition-colors shrink-0"
+            >
+              <ChevronUp
+                className={`h-4 w-4 transition-transform duration-300 ${heroCollapsed ? "rotate-180" : ""}`}
+                strokeWidth={2.4}
+              />
+            </button>
           </div>
-        )}
+
+          {filterOpen && (
+            <div className="mt-3 rounded-[26px] border border-white/12 bg-black/25 p-4 shadow-2xl">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">
+                  Filter by mood
+                </p>
+                {activeMoods.size > 0 && (
+                  <button
+                    onClick={() => setActiveMoods(new Set())}
+                    className="text-[10px] font-semibold uppercase tracking-wider text-white/50 hover:text-white transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {availableMoods.map((m) => {
+                  const on = activeMoods.has(m);
+                  return (
+                    <button
+                      key={m}
+                      onClick={() => toggleMood(m)}
+                      className={`px-3 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-wider transition-colors ${
+                        on
+                          ? "bg-white text-zinc-900"
+                          : "bg-white/10 text-white/70 hover:bg-white/20"
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+        <div
+          aria-hidden
+          className="mx-6 -mt-2 h-10 rounded-full bg-black/28 blur-2xl pointer-events-none"
+        />
       </div>
 
       {/* Pins — share the map's transform so they ride along with their
@@ -254,79 +231,78 @@ function MapScreen() {
         className="absolute inset-0"
         style={{ transform: "scale(1.1) translateY(28px)", transformOrigin: "center" }}
       >
-      {PINS.map((p) => {
-        const active = p.id === selectedId;
-        const matches = matchesFilter(p.tags);
-        // Active pin gets a chunky cover-tile treatment (airbnb-style).
-        // Non-active pins stay as small dots so the active one really pops.
-        const firstSong = p.songs[0];
-        const cover = firstSong ? getSongTheme(firstSong.song, firstSong.artist).cover : null;
-        return (
-          <button
-            key={p.id}
-            onClick={() => setSelectedId(p.id)}
-            aria-label={`Open ${p.label}`}
-            className={`group absolute -translate-x-1/2 -translate-y-1/2 focus:outline-none transition-all duration-300 ${
-              matches ? "opacity-100" : "opacity-25 scale-75"
-            }`}
-            style={{ left: `${p.x}%`, top: `${p.y}%`, zIndex: active ? 5 : 1 }}
-          >
-            {active ? (
-              // Active = cover-tile pin (airbnb listing style)
-              <div className="relative flex flex-col items-center">
-                <div className="relative h-12 w-12 rounded-xl overflow-hidden ring-2 ring-white shadow-2xl bg-zinc-800">
-                  {cover ? (
-                    <img
-                      src={cover}
-                      alt=""
-                      className="absolute inset-0 h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 grid place-items-center text-white text-[18px]">🎵</div>
-                  )}
+        {PINS.map((p) => {
+          const active = p.id === selectedId;
+          const matches = matchesFilter(p.tags);
+          // Active pin gets a chunky cover-tile treatment (airbnb-style).
+          // Non-active pins stay as small dots so the active one really pops.
+          const firstSong = p.songs[0];
+          const cover = firstSong ? getSongTheme(firstSong.song, firstSong.artist).cover : null;
+          return (
+            <button
+              key={p.id}
+              onClick={() => setSelectedId(p.id)}
+              aria-label={`Open ${p.label}`}
+              className={`group absolute -translate-x-1/2 -translate-y-1/2 focus:outline-none transition-all duration-300 ${
+                matches ? "opacity-100" : "opacity-25 scale-75"
+              }`}
+              style={{ left: `${p.x}%`, top: `${p.y}%`, zIndex: active ? 5 : 1 }}
+            >
+              {active ? (
+                // Active = cover-tile pin (airbnb listing style)
+                <div className="relative flex flex-col items-center">
+                  <div className="relative h-12 w-12 rounded-xl overflow-hidden ring-2 ring-white shadow-2xl bg-zinc-800">
+                    {cover ? (
+                      <img
+                        src={cover}
+                        alt=""
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 grid place-items-center text-white text-[18px]">
+                        🎵
+                      </div>
+                    )}
+                  </div>
+                  {/* Speech-bubble pointer */}
+                  <span aria-hidden className="absolute -bottom-1 h-3 w-3 rotate-45 bg-white" />
                 </div>
-                {/* Speech-bubble pointer */}
-                <span
-                  aria-hidden
-                  className="absolute -bottom-1 h-3 w-3 rotate-45 bg-white"
-                />
-              </div>
-            ) : (
-              // Inactive = small dark dot + (optional) ping for hot pins.
-              // Dark fill so dots stay visible on the light grayscale map.
-              <div className="relative">
-                {p.hot && matches && (
-                  <span className="absolute inset-0 rounded-full bg-zinc-900/40 animate-ping" />
-                )}
-                <span
-                  className={`relative block rounded-full ring-2 ring-white transition-all duration-300 ${
-                    p.hot
-                      ? "h-3 w-3 bg-zinc-900 shadow-lg group-hover:scale-125"
-                      : "h-2.5 w-2.5 bg-zinc-900/85 group-hover:bg-zinc-900 group-hover:scale-125"
-                  }`}
-                />
-              </div>
-            )}
-          </button>
-        );
-      })}
+              ) : (
+                // Inactive = small dark dot + (optional) ping for hot pins.
+                // Dark fill so dots stay visible on the light grayscale map.
+                <div className="relative">
+                  {p.hot && matches && (
+                    <span className="absolute inset-0 rounded-full bg-zinc-900/40 animate-ping" />
+                  )}
+                  <span
+                    className={`relative block rounded-full ring-2 ring-white transition-all duration-300 ${
+                      p.hot
+                        ? "h-3 w-3 bg-zinc-900 shadow-lg group-hover:scale-125"
+                        : "h-2.5 w-2.5 bg-zinc-900/85 group-hover:bg-zinc-900 group-hover:scale-125"
+                    }`}
+                  />
+                </div>
+              )}
+            </button>
+          );
+        })}
 
-      {/* "you are here" pulse anchored to UTS — only visible when UTS isn't
+        {/* "you are here" pulse anchored to UTS — only visible when UTS isn't
           the active selection (otherwise the cover-pin overlaps it) */}
-      {selectedId !== YOU_ID && (
-        <div
-          className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-          style={{
-            left: `${PINS.find((p) => p.id === YOU_ID)!.x}%`,
-            top: `${PINS.find((p) => p.id === YOU_ID)!.y}%`,
-            zIndex: 1,
-          }}
-        >
-          <div className="pulse-ring relative h-4 w-4 rounded-full">
-            <span className="absolute inset-1 rounded-full bg-zinc-900 shadow-lg" />
+        {selectedId !== YOU_ID && (
+          <div
+            className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+            style={{
+              left: `${PINS.find((p) => p.id === YOU_ID)!.x}%`,
+              top: `${PINS.find((p) => p.id === YOU_ID)!.y}%`,
+              zIndex: 1,
+            }}
+          >
+            <div className="pulse-ring relative h-4 w-4 rounded-full">
+              <span className="absolute inset-1 rounded-full bg-zinc-900 shadow-lg" />
+            </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
 
       {/* Carousel — replaces LocationDrawer; tap card → /location/$id */}

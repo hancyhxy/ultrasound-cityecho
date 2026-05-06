@@ -15,7 +15,7 @@ export const Route = createFileRoute("/traces")({
   validateSearch: tracesSearchSchema,
   head: () => ({
     meta: [
-      { title: "Trace — Ultrasound" },
+      { title: "Story — Ultrasound" },
       { name: "description", content: "What strangers left behind, song by song." },
     ],
   }),
@@ -109,7 +109,7 @@ function TracesScreen() {
                 key="self"
                 onClick={() => setComposerOpen(true)}
                 className="shrink-0 flex flex-col items-center gap-1.5 group"
-                aria-label="Pin a new trace"
+                aria-label="Pin a new story"
               >
                 <span className="relative h-20 w-20 rounded-full grid place-items-center transition-transform group-hover:scale-105 p-[2px] bg-white/10">
                   <img
@@ -129,7 +129,7 @@ function TracesScreen() {
                 key={s.id}
                 onClick={() => setOpenUserId(s.id)}
                 className="shrink-0 flex flex-col items-center gap-1.5 group"
-                aria-label={`See traces from ${s.initial}`}
+                aria-label={`See stories from ${s.initial}`}
               >
                 <span
                   className={`relative h-20 w-20 rounded-full grid place-items-center transition-transform group-hover:scale-105 ${
@@ -251,7 +251,7 @@ function UserStoryModal({ user, onClose }: { user: StoryStranger; onClose: () =>
           />
           <div className="flex-1 min-w-0">
             <p className="font-display text-[18px] leading-tight">a stranger</p>
-            <p className="text-[11px] text-muted-foreground">{user.traces.length} traces · this week</p>
+            <p className="text-[11px] text-muted-foreground">{user.traces.length} stories · this week</p>
           </div>
           <button onClick={onClose} aria-label="Close" className="h-8 w-8 grid place-items-center rounded-full bg-white/5">
             <X className="h-4 w-4" />
@@ -383,24 +383,33 @@ function TracesComposer({
     <div className="absolute inset-0 z-50 flex items-end" onClick={onClose}>
       <div className="absolute inset-0 bg-background/80 backdrop-blur-md" />
       <div
-        className="relative w-full glass-strong rounded-t-[28px] p-6 pb-8 border-t border-white/10 animate-in slide-in-from-bottom duration-300 max-h-[88%] overflow-y-auto scrollbar-none"
+        className="relative w-full rounded-t-[28px] bg-zinc-900/95 backdrop-blur-md p-6 pb-8 border-t border-white/10 animate-in slide-in-from-bottom duration-300 max-h-[88%] overflow-y-auto scrollbar-none"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mx-auto h-1 w-10 rounded-full bg-white/20 mb-4" />
+        <div className="mx-auto h-1 w-10 rounded-full bg-white/15 mb-5" />
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="font-display text-[22px] leading-tight">Pin a trace.</h3>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">
+              New
+            </p>
+            <h3 className="mt-2 text-[28px] leading-[1.05] font-extrabold tracking-tight text-white">
+              Leave a story.
+            </h3>
+            <p className="mt-2 text-[13px] text-white/55">
               One song, one place, one honest sentence.
             </p>
           </div>
-          <button onClick={onClose} aria-label="Close" className="h-8 w-8 grid place-items-center rounded-full bg-white/5">
-            <X className="h-4 w-4" />
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="h-9 w-9 grid place-items-center rounded-full bg-white/8 hover:bg-white/12 transition-colors shrink-0"
+          >
+            <X className="h-4 w-4 text-white" />
           </button>
         </div>
 
         {/* Where */}
-        <p className="mt-5 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">Where</p>
+        <p className="mt-7 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55 mb-3">Where</p>
         <div className="flex flex-wrap gap-2">
           {PINS.map((p) => (
             <button
@@ -409,8 +418,10 @@ function TracesComposer({
                 setPinId(p.id);
                 if (hint) setHint(null);
               }}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                p.id === pinId ? "bg-accent text-accent-foreground" : "bg-white/5 text-foreground/70 hover:bg-white/10"
+              className={`px-3.5 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-[0.18em] transition-colors ${
+                p.id === pinId
+                  ? "bg-white text-zinc-900"
+                  : "bg-white/8 text-white/70 hover:bg-white/12 hover:text-white"
               }`}
             >
               {p.label}
@@ -419,8 +430,8 @@ function TracesComposer({
         </div>
 
         {/* What song */}
-        <p className="mt-5 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">What song held you</p>
-        <div className="grid grid-cols-2 gap-2">
+        <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55 mb-3">What song held you</p>
+        <div className="grid grid-cols-2 gap-2.5">
           <input
             value={song}
             onChange={(e) => {
@@ -429,7 +440,7 @@ function TracesComposer({
             }}
             placeholder="song"
             maxLength={80}
-            className="rounded-2xl bg-background/50 border border-white/10 px-4 py-3 text-[14px] focus:outline-none focus:border-accent/40 placeholder:text-muted-foreground/60"
+            className="rounded-2xl bg-white/5 border border-white/8 px-4 py-3 text-[14px] text-white focus:outline-none focus:border-white/25 focus:bg-white/8 transition-colors placeholder:text-white/35"
           />
           <input
             value={artist}
@@ -439,12 +450,12 @@ function TracesComposer({
             }}
             placeholder="artist"
             maxLength={60}
-            className="rounded-2xl bg-background/50 border border-white/10 px-4 py-3 text-[14px] focus:outline-none focus:border-accent/40 placeholder:text-muted-foreground/60"
+            className="rounded-2xl bg-white/5 border border-white/8 px-4 py-3 text-[14px] text-white focus:outline-none focus:border-white/25 focus:bg-white/8 transition-colors placeholder:text-white/35"
           />
         </div>
 
         {/* Note */}
-        <p className="mt-5 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">What did it hold for you</p>
+        <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55 mb-3">What did it hold for you</p>
         <textarea
           value={note}
           onChange={(e) => {
@@ -453,12 +464,12 @@ function TracesComposer({
           }}
           placeholder="A stranger in this seat tomorrow will read it."
           maxLength={140}
-          className="w-full h-24 rounded-2xl bg-background/50 border border-white/10 p-4 text-[14px] resize-none focus:outline-none focus:border-accent/40 placeholder:text-muted-foreground/60"
+          className="w-full h-24 rounded-2xl bg-white/5 border border-white/8 p-4 text-[14px] text-white resize-none focus:outline-none focus:border-white/25 focus:bg-white/8 transition-colors placeholder:text-white/35"
         />
-        <div className="mt-1 text-[10px] font-mono text-muted-foreground text-right">{note.length}/140</div>
+        <div className="mt-1.5 text-[10px] font-semibold tracking-[0.16em] text-white/45 text-right">{note.length}/140</div>
 
         {/* Mood */}
-        <p className="mt-4 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">Mood</p>
+        <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55 mb-3">Mood</p>
         <div className="flex flex-wrap gap-2">
           {COMPOSER_MOODS.map((m) => (
             <button
@@ -467,8 +478,10 @@ function TracesComposer({
                 setMood(m);
                 if (hint) setHint(null);
               }}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                mood === m ? "bg-accent text-accent-foreground" : "bg-white/5 text-foreground/70 hover:bg-white/10"
+              className={`px-3.5 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-[0.18em] transition-colors ${
+                mood === m
+                  ? "bg-white text-zinc-900"
+                  : "bg-white/8 text-white/70 hover:bg-white/12 hover:text-white"
               }`}
             >
               {m}
@@ -477,12 +490,12 @@ function TracesComposer({
         </div>
 
         {hint && (
-          <p className="mt-3 text-[11px] font-mono italic text-accent/80">{hint}</p>
+          <p className="mt-4 text-[12px] italic text-white/70">{hint}</p>
         )}
 
         <button
           onClick={handleSubmit}
-          className="mt-6 w-full h-12 rounded-2xl bg-accent text-accent-foreground font-medium hover:opacity-90 transition-opacity shadow-accent"
+          className="mt-7 w-full h-12 rounded-2xl bg-white text-zinc-900 text-[13px] font-extrabold uppercase tracking-[0.18em] hover:bg-white/90 transition-colors"
         >
           Pin to {selectedPin?.label ?? "this place"}
         </button>

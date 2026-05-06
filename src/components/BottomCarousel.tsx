@@ -130,7 +130,7 @@ function CarouselCard({ pin, active }: { pin: Pin; active: boolean }) {
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/55">
-            {pin.count} traces · {pin.listening} listening
+            {pin.count} stories · {pin.listening} listening
           </p>
           <p className="mt-1 text-[16px] font-extrabold tracking-tight text-white truncate">
             {pin.label}

@@ -4,7 +4,7 @@ import type { CSSProperties, ReactNode } from "react";
 
 const NAV = [
   { to: "/", label: "Map", icon: House },
-  { to: "/traces", label: "Trace", icon: LayoutGrid },
+  { to: "/traces", label: "Story", icon: LayoutGrid },
   { to: "/playlist", label: "Playlist", icon: Library },
   { to: "/me", label: "Me", icon: User },
 ] as const;
@@ -12,23 +12,22 @@ const NAV = [
 export function PhoneShell({
   children,
   backdropStyle,
+  scrollable = true,
+  showStatusBar = true,
 }: {
   children: ReactNode;
   /** Per-page backdrop override. When provided, replaces the default plum
       background of the phone frame (covers status bar, main, and nav area). */
   backdropStyle?: CSSProperties;
+  /** Some screens are fixed canvases and should not vertically scroll. */
+  scrollable?: boolean;
+  /** Some screens render a custom status bar inside their own overlay chrome. */
+  showStatusBar?: boolean;
 }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
 
   return (
     <div className="h-screen w-full overflow-hidden flex items-center justify-center px-4">
-      {/* Ambient backdrop orbs (visible behind phone on desktop) */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="drift absolute -top-32 -left-20 h-[420px] w-[420px] rounded-full bg-primary/25 blur-3xl" />
-        <div className="drift absolute top-1/3 -right-24 h-[380px] w-[380px] rounded-full bg-accent/20 blur-3xl" style={{ animationDelay: "3s" }} />
-        <div className="drift absolute bottom-0 left-1/3 h-[360px] w-[360px] rounded-full bg-primary/15 blur-3xl" style={{ animationDelay: "6s" }} />
-      </div>
-
       {/* Phone frame — inflow inside an h-screen overflow-hidden parent, so
           the device is centred in the viewport and clipped (rather than
           scrolling) when the viewport is shorter than the phone. Outer is
@@ -43,14 +42,19 @@ export function PhoneShell({
             }`}
             style={backdropStyle}
           >
-            {/* status bar */}
-            <div className="flex items-center justify-between px-7 pt-4 pb-1 text-[11px] font-mono text-muted-foreground/80">
-              <span>9:41</span>
-              <span>100%</span>
-            </div>
+            {showStatusBar && (
+              <div className="flex items-center justify-between px-7 pt-4 pb-1 text-[11px] font-mono text-muted-foreground/80">
+                <span>9:41</span>
+                <span>100%</span>
+              </div>
+            )}
 
             {/* content area */}
-            <main className="relative h-[760px] overflow-y-auto scrollbar-none">
+            <main
+              className={`relative h-[760px] scrollbar-none ${
+                scrollable ? "overflow-y-auto" : "overflow-hidden"
+              }`}
+            >
               {children}
             </main>
           </div>
@@ -86,7 +90,10 @@ export function PhoneShell({
         </div>
 
         {/* subtle reflection */}
-        <div aria-hidden className="absolute inset-x-12 -bottom-8 h-16 bg-primary/30 blur-2xl rounded-full opacity-40" />
+        <div
+          aria-hidden
+          className="absolute inset-x-12 -bottom-8 h-16 bg-primary/30 blur-2xl rounded-full opacity-40"
+        />
       </div>
     </div>
   );

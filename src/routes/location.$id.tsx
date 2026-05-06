@@ -212,7 +212,7 @@ function StoryTab({
           className="mt-3 text-[10px] font-semibold tracking-[0.18em] uppercase"
           style={{ color: theme.tintLight }}
         >
-          {count > 0 ? `${count} ${count === 1 ? "trace" : "traces"} here` : "no traces yet"}
+          {count > 0 ? `${count} ${count === 1 ? "story" : "stories"} here` : "no stories yet"}
         </p>
       </div>
 
@@ -246,7 +246,7 @@ function StoryTab({
           }}
         >
           <span aria-hidden>＋</span>
-          Leave a trace here
+          Leave a story here
         </Link>
       </div>
     </div>

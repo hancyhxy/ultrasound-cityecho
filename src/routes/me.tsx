@@ -1,70 +1,58 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Settings } from "lucide-react";
 import { PhoneShell } from "@/components/PhoneShell";
+import { FourGridCover } from "@/components/FourGridCover";
 import {
-  currentSeason,
-  getMyFirstTrace,
-  getMyHomePlace,
-  getMyTracesBySeason,
+  getMyTopPlaces,
+  getMyTopSongs,
+  getMyYearStats,
   getStrangerTimeOverlap,
-  type MyTrace,
-  type Season,
+  getUserAvatar,
 } from "@/lib/seed-data";
+import { getSongTheme } from "@/lib/song-themes";
+
+// Brand-purple accent reused across the page (chapter marks, key
+// emphases). Kept inline so it tracks the rest of the app's accent.
+const ACCENT_PURPLE = "oklch(0.65 0.22 295)";
 
 export const Route = createFileRoute("/me")({
   head: () => ({
     meta: [
       { title: "Me — Ultrasound" },
-      { name: "description", content: "A small diary of how this city has been listening with you." },
+      {
+        name: "description",
+        content: "A small diary of how this city has been listening with you.",
+      },
     ],
   }),
   component: MeScreen,
 });
 
-const SEASONS: Season[] = ["spring", "summer", "autumn", "winter"];
-
-const SEASON_GRADIENT: Record<Season, string> = {
-  spring: "from-accent/30 via-primary/15 to-transparent",
-  summer: "from-accent/40 via-accent/10 to-transparent",
-  autumn: "from-destructive/20 via-accent/15 to-transparent",
-  winter: "from-primary/30 via-primary/10 to-transparent",
-};
-
-const SEASON_COPY: Record<Season, { lead: string; tail: string }> = {
-  spring: { lead: "This spring,", tail: "the city was warming back up to you." },
-  summer: { lead: "This summer,", tail: "you stayed up later than the sun." },
-  autumn: { lead: "This autumn,", tail: "you walked home slower." },
-  winter: { lead: "This winter,", tail: "you found small rooms that held you." },
-};
-
 function MeScreen() {
-  const first = useMemo(() => getMyFirstTrace(), []);
+  const stats = useMemo(() => getMyYearStats(), []);
+  const topSongs = useMemo(() => getMyTopSongs(5), []);
+  const topPlaces = useMemo(() => getMyTopPlaces(3), []);
   const overlap = useMemo(() => getStrangerTimeOverlap(), []);
-  const home = useMemo(() => getMyHomePlace(), []);
-  const bySeason = useMemo(() => getMyTracesBySeason(), []);
-  const initialSeason = useMemo(() => {
-    const cur = currentSeason();
-    return bySeason[cur].length > 0
-      ? cur
-      : (SEASONS.find((s) => bySeason[s].length > 0) ?? "autumn");
-  }, [bySeason]);
-  const [activeSeason, setActiveSeason] = useState<Season>(initialSeason);
 
   return (
     <PhoneShell>
       {/* Ambient orbs — layer 0, behind everything */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="drift absolute top-[12%] -left-16 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
-        <div className="drift absolute top-[42%] -right-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl" style={{ animationDelay: "5s" }} />
-        <div className="drift absolute bottom-[8%] left-1/4 h-56 w-56 rounded-full bg-accent/8 blur-3xl" style={{ animationDelay: "9s" }} />
+        <div
+          className="drift absolute top-[42%] -right-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl"
+          style={{ animationDelay: "5s" }}
+        />
+        <div
+          className="drift absolute bottom-[8%] left-1/4 h-56 w-56 rounded-full bg-accent/8 blur-3xl"
+          style={{ animationDelay: "9s" }}
+        />
       </div>
 
       {/* Top bar */}
       <header className="relative px-6 pt-4 flex items-center justify-between">
-        <p className="text-[9px] font-mono uppercase tracking-[0.24em] text-muted-foreground">
-          Ultrasound · your year
-        </p>
+        <p className="text-[9px] font-mono uppercase tracking-[0.24em] text-white/55">Your year</p>
         <button
           aria-label="Settings"
           className="h-9 w-9 grid place-items-center rounded-full glass"
@@ -73,13 +61,20 @@ function MeScreen() {
         </button>
       </header>
 
-      {/* Section 0 · Identity — stickered portrait (airbuds-style). Emojis float
-          around the portrait with white outlines, like collage stickers. */}
+      {/* Section 0 · Identity — stickered portrait (airbuds-style). Real
+          photo replaces the gradient placeholder so this matches the avatar
+          system used everywhere else (traces, danmaku, modals). Emojis still
+          float around it as collage stickers. */}
       <section className="relative mt-6 px-6 flex flex-col items-center text-center">
         <div className="relative">
-          {/* Portrait — square chunky tile with white border and gradient fill. */}
-          <div className="h-24 w-24 rounded-2xl bg-gradient-to-br from-accent-hot via-primary to-primary-bright grid place-items-center ring-[3px] ring-white shadow-lg">
-            <span className="font-extrabold text-[32px] text-white">L</span>
+          {/* Portrait — square chunky tile with white border. */}
+          <div className="h-24 w-24 rounded-2xl overflow-hidden ring-[3px] ring-white shadow-lg">
+            <img
+              src={getUserAvatar("self")}
+              alt="Your portrait"
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
           </div>
           {/* Emoji stickers — each ring of white acts as the collage outline. */}
           <span
@@ -107,146 +102,154 @@ function MeScreen() {
             ☁️
           </span>
         </div>
-        <h1 className="mt-7 text-[30px] leading-[0.95] font-extrabold tracking-[-0.02em] uppercase">Lina</h1>
+        <h1 className="mt-7 text-[28px] leading-[1.05] font-extrabold tracking-tight text-white">
+          Lina
+        </h1>
         <p className="mt-3 italic text-[14px] leading-relaxed text-foreground/70 max-w-[14rem]">
-          in this city for seven months,<br />
+          in this city for seven months,
+          <br />
           listening softly.
         </p>
       </section>
 
-      {/* Section 1 · First trace */}
-      {first && (
-        <section className="relative mt-20 px-8">
-          <ChapterMark numeral="I." label="First heard" />
-          <Link
-            to="/playing"
-            search={{ song: first.song, artist: first.artist, loc: first.locationId }}
-            aria-label={`Play ${first.song} by ${first.artist}`}
-            className="mt-6 block group"
-          >
-            <p className="font-display text-[22px] leading-[1.25] italic text-foreground/95 group-hover:text-accent transition-colors">
-              "{first.song}"
-            </p>
-            <p className="mt-1 font-display text-[14px] text-muted-foreground italic">
-              — {first.artist}
-            </p>
-            <p className="mt-6 font-display italic text-[15px] leading-relaxed text-foreground/85">
-              "{first.note}"
-            </p>
-            <p className="mt-4 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
-              {first.place} · {first.when}
-            </p>
-          </Link>
-        </section>
+      <div className="mt-8" />
+
+      {/* Block A · YOUR YEAR — 4 stat tiles in a row. Mirrors a count-down
+          / weekly-recap stat strip: equal-width tiles, mono digits, tiny
+          uppercase caption. This is the "zoom out" so users see the
+          whole year at a glance before any vignette. */}
+      <section className="mx-5">
+        <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.24em] text-white/55">
+          Your year
+        </p>
+        <div className="flex gap-2">
+          <StatTile value={stats.stories} label="stories" />
+          <StatTile value={stats.songs} label="songs" />
+          <StatTile value={stats.places} label="places" />
+          <StatTile value={stats.strangers} label="strangers" />
+        </div>
+      </section>
+
+      {/* Block B · top songs — horizontal cover-tile row, ranked by how
+          many stories the user wrote about each song. The #1 tile carries
+          a small badge so the ranking is legible without numbering each. */}
+      {topSongs.length > 0 && (
+        <BlockSection title="songs you came back to">
+          <div className="px-5 flex gap-3 overflow-x-auto scrollbar-none pb-1">
+            {topSongs.map((s, i) => (
+              <Link
+                key={`${s.song}::${s.artist}`}
+                to="/playing"
+                search={{ song: s.song, artist: s.artist }}
+                aria-label={`Play ${s.song} by ${s.artist}`}
+                className="shrink-0 w-[120px] group"
+              >
+                <div className="relative">
+                  <SongCoverTile song={s.song} artist={s.artist} size={120} />
+                  {i === 0 && (
+                    <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-white text-zinc-900 text-[9px] font-extrabold tracking-wider">
+                      #1
+                    </span>
+                  )}
+                </div>
+                <p className="mt-2 text-[12px] font-extrabold tracking-tight text-white truncate">
+                  {s.song}
+                </p>
+                <p className="mt-0.5 text-[10px] text-white/55 truncate">{s.artist}</p>
+                <p className="mt-1.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/55">
+                  {s.storyCount} {s.storyCount === 1 ? "story" : "stories"}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </BlockSection>
       )}
 
-      {/* Section 2 · One night you were not alone — the emotional peak */}
+      {/* Block C · top places — horizontal FourGridCover row, ranked by
+          story count. Each tile carries the pin's tags as a sub-row so
+          the row reads "place + flavour + count" at a glance. */}
+      {topPlaces.length > 0 && (
+        <BlockSection title="places that knew your name">
+          <div className="px-5 flex gap-3 overflow-x-auto scrollbar-none pb-1">
+            {topPlaces.map(({ pin, storyCount }) => (
+              <Link
+                key={pin.id}
+                to="/"
+                search={{ pin: pin.id }}
+                aria-label={`Open map at ${pin.label}`}
+                className="shrink-0 w-[140px] group"
+              >
+                <FourGridCover songs={pin.songs} size={140} />
+                <p className="mt-2 text-[12px] font-extrabold tracking-tight text-white truncate">
+                  {pin.label}
+                </p>
+                <p className="mt-1 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/55">
+                  {storyCount} {storyCount === 1 ? "story" : "stories"}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </BlockSection>
+      )}
+
+      {/* Block D · once, not alone — overlap moment kept as the page's
+          single narrative beat (everything else is dashboard). Single
+          centred cover so the two-quote structure reads as "two people,
+          one room", not as two separate songs. */}
       {overlap && (
-        <section className="relative mt-24 px-8">
-          <ChapterMark numeral="II." label="One night you were not alone" />
+        <BlockSection title="once, not alone">
           <Link
             to="/playing"
-            search={{ song: overlap.mine.song, artist: overlap.mine.artist, loc: overlap.mine.locationId }}
+            search={{
+              song: overlap.mine.song,
+              artist: overlap.mine.artist,
+              loc: overlap.mine.locationId,
+            }}
             aria-label={`Play ${overlap.mine.song} together`}
-            className="mt-6 block group"
+            className="block group px-5"
           >
-            <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
-              {overlap.mine.when}, you wrote:
+            <div className="flex flex-col items-center">
+              <SongCoverTile song={overlap.mine.song} artist={overlap.mine.artist} size={120} />
+              <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
+                ~{overlap.minutesApart} minutes apart
+              </p>
+            </div>
+            <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45">
+              {overlap.mine.when}, you wrote
             </p>
-            <p className="mt-3 font-display italic text-[18px] leading-relaxed text-foreground/95 group-hover:text-accent transition-colors">
+            <p className="mt-2 font-display italic text-[14px] leading-relaxed text-white/90">
               "{overlap.mine.note}"
             </p>
-
-            {/* Sync pulse — the moment of overlap */}
-            <div className="my-10 flex items-center justify-center">
-              <span className="pulse-ring relative h-3 w-3 rounded-full">
-                <span className="absolute inset-0 rounded-full bg-accent" />
-              </span>
-            </div>
-
-            <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
-              about ~{overlap.minutesApart} minutes later, someone else wrote
-              <br />about the same song:
+            <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45">
+              {overlap.theirs.userInitial}-stranger, {overlap.theirs.place}
             </p>
-            <p className="mt-3 font-display italic text-[16px] leading-relaxed text-foreground/85">
+            <p className="mt-2 font-display italic text-[14px] leading-relaxed text-white/75">
               "{overlap.theirs.note}"
             </p>
-            <p className="mt-4 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
-              {overlap.theirs.userInitial}-stranger · {overlap.theirs.place}
-            </p>
           </Link>
-        </section>
+        </BlockSection>
       )}
-
-      {/* Section 3 · One place knows your songs */}
-      {home && (
-        <section className="relative mt-24 px-8">
-          <ChapterMark numeral="III." label="One place knows your songs" />
-          <Link
-            to="/"
-            search={{ pin: home.pin.id }}
-            aria-label={`Open map at ${home.pin.label}`}
-            className="mt-6 block group"
-          >
-            <p className="font-display text-[22px] leading-[1.25] text-foreground/95 group-hover:text-accent transition-colors">
-              {home.pin.label} heard you{" "}
-              <span className="italic text-gradient-neon">{numberToWord(home.tracesCount)}</span> times.
-            </p>
-            <p className="mt-5 font-display italic text-[15px] leading-relaxed text-foreground/75 max-w-[18rem]">
-              {home.pin.mood.toLowerCase().replace(/\.$/, "")}.
-            </p>
-          </Link>
-        </section>
-      )}
-
-      {/* Section 4 · Seasons */}
-      <section className="relative mt-24 px-8">
-        <ChapterMark numeral="IV." label="Seasons" />
-
-        {/* Season tabs */}
-        <div role="tablist" aria-label="Seasons" className="mt-6 flex items-center justify-center gap-1.5">
-          {SEASONS.map((s) => {
-            const has = bySeason[s].length > 0;
-            const active = s === activeSeason;
-            return (
-              <button
-                key={s}
-                role="tab"
-                aria-selected={active}
-                disabled={!has}
-                onClick={() => setActiveSeason(s)}
-                className={`text-[10px] font-mono uppercase tracking-[0.18em] px-2.5 py-1 rounded-full transition-all ${
-                  active
-                    ? "bg-accent text-accent-foreground"
-                    : has
-                    ? "text-foreground/70 hover:text-accent"
-                    : "text-muted-foreground/40"
-                }`}
-              >
-                {s}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Season vignette */}
-        <SeasonVignette season={activeSeason} bySeason={bySeason} />
-      </section>
 
       {/* Section 5 · Footer */}
       <section className="relative mt-24 px-8 pb-12 text-center">
         <div className="mx-auto h-px w-16 bg-white/10" />
         <p className="mt-8 italic font-bold text-[18px] leading-[1.25] text-foreground/90 max-w-[16rem] mx-auto">
-          <span className="uppercase tracking-[-0.01em] block text-gradient-neon">Somewhere<br />in the city,</span>
+          <span className="uppercase tracking-[-0.01em] block" style={{ color: ACCENT_PURPLE }}>
+            Somewhere
+            <br />
+            in the city,
+          </span>
           <span className="block mt-3 font-medium text-foreground/75 text-[14px] leading-relaxed">
-            someone is reading<br />
-            a song you left behind.
+            someone is reading
+            <br />a song you left behind.
           </span>
         </p>
         <div className="mt-8 mx-auto h-px w-16 bg-white/10" />
         <p className="mt-8 text-[9px] font-semibold uppercase tracking-[0.32em] text-muted-foreground/70 leading-loose">
-          Ultrasound<br />
-          listening together<br />
+          Ultrasound
+          <br />
+          listening together
+          <br />
           quietly
         </p>
       </section>
@@ -254,76 +257,68 @@ function MeScreen() {
   );
 }
 
-function ChapterMark({ numeral, label }: { numeral: string; label: string }) {
+/** Section wrapper — uses the same caps-eyebrow header as YOUR YEAR
+    so every block on this page speaks one type voice. The title is a
+    plain uppercase eyebrow rather than a decorative watermark, which
+    lets the album tiles below own the visual weight. */
+function BlockSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center text-center">
-      <span aria-hidden className="font-extrabold italic text-[22px] text-gradient-neon">
-        {numeral}
-      </span>
-      <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+    <section className="relative mt-8">
+      <h2 className="px-5 mb-3 text-[10px] font-semibold uppercase tracking-[0.24em] text-white/55">
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
+/** Single album-cover tile for a song. Falls back to a tint gradient
+    + first letter when the song has no registered cover (mirrors
+    FourGridCover's per-cell fallback so the visual language is
+    consistent across the app). */
+function SongCoverTile({ song, artist, size }: { song: string; artist: string; size: number }) {
+  const theme = getSongTheme(song, artist);
+  return (
+    <div
+      className="relative rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-soft shrink-0"
+      style={{ width: size, height: size }}
+    >
+      {theme.cover ? (
+        <img
+          src={theme.cover}
+          alt={`${song} cover`}
+          className="absolute inset-0 h-full w-full object-cover"
+          loading="lazy"
+        />
+      ) : (
+        <div
+          className="absolute inset-0 grid place-items-center"
+          style={{ background: `linear-gradient(135deg, ${theme.tint}, ${theme.tintDeep})` }}
+        >
+          <span className="text-white/85 text-[28px] font-extrabold uppercase tracking-tight">
+            {song.slice(0, 1)}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Single stat cell in the YOUR YEAR strip. Equal-width via flex-1 so a
+    row of N stays evenly distributed regardless of digit count. Mono
+    digits keep the row visually balanced when values vary in width. */
+function StatTile({ value, label }: { value: number; label: string }) {
+  return (
+    <div
+      className="flex-1 rounded-2xl bg-white/4 py-3 px-2 text-center"
+      style={{ border: "1px solid oklch(0.65 0.22 295 / 0.55)" }}
+    >
+      <p className="text-[26px] font-extrabold tracking-tight text-white tabular-nums leading-none">
+        {String(value).padStart(2, "0")}
+      </p>
+      <p className="mt-1.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/55">
         {label}
-      </span>
+      </p>
     </div>
   );
 }
-
-function SeasonVignette({
-  season,
-  bySeason,
-}: {
-  season: Season;
-  bySeason: Record<Season, ReturnType<typeof getMyTracesBySeason>[Season]>;
-}) {
-  const traces = bySeason[season];
-  const t = traces[0];
-  const copy = SEASON_COPY[season];
-
-  return (
-    <div className="relative mt-7 rounded-2xl overflow-hidden">
-      <div
-        aria-hidden
-        className={`absolute inset-0 bg-gradient-to-br ${SEASON_GRADIENT[season]} pointer-events-none`}
-      />
-      <div className="relative px-2 py-2">
-        {t ? (
-          <>
-            <p className="font-display text-[18px] leading-[1.3] text-foreground/95">
-              <span className="italic text-accent">{copy.lead}</span>
-              <br />
-              {seasonNarrative(t, traces.length)}
-            </p>
-            <p className="mt-5 font-display italic text-[14px] leading-relaxed text-foreground/80 max-w-[18rem]">
-              "{t.note}"
-            </p>
-            <p className="mt-3 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
-              {t.place} · {t.when}
-            </p>
-            <p className="mt-6 font-display italic text-[13px] text-foreground/55 max-w-[16rem]">
-              {copy.tail}
-            </p>
-          </>
-        ) : (
-          <p className="font-display italic text-[14px] text-muted-foreground">
-            {copy.lead.toLowerCase()} the city was quiet.
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/** Build the narrative second line of the seasonal vignette. */
-function seasonNarrative(t: MyTrace, count: number): string {
-  const placeShort = t.place.split("·")[0].trim();
-  if (count > 1) {
-    return `you returned to ${placeShort} ${numberToWord(count)} times,`;
-  }
-  return `you went once to ${placeShort},`;
-}
-
-/** Tiny number → word for narrative use. Falls back to digits beyond ten. */
-function numberToWord(n: number): string {
-  const words = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
-  return words[n] ?? String(n);
-}
-
