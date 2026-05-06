@@ -42,12 +42,15 @@ export function PhoneShell({
             }`}
             style={backdropStyle}
           >
-            {showStatusBar && (
-              <div className="flex items-center justify-between px-7 pt-4 pb-1 text-[11px] font-mono text-muted-foreground/80">
-                <span>9:41</span>
-                <span>100%</span>
-              </div>
-            )}
+            <div
+              aria-hidden={!showStatusBar}
+              className={`flex items-center justify-between px-7 pt-4 pb-1 text-[11px] font-mono text-muted-foreground/80 ${
+                showStatusBar ? "" : "opacity-0 pointer-events-none select-none"
+              }`}
+            >
+              <span>9:41</span>
+              <span>100%</span>
+            </div>
 
             {/* content area */}
             <main
