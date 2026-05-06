@@ -1,11 +1,20 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ChevronDown, Play } from "lucide-react";
+import { z } from "zod";
 import { PhoneShell } from "@/components/PhoneShell";
 import { FourGridCover } from "@/components/FourGridCover";
-import { PINS } from "@/lib/seed-data";
+import { TraceCard } from "@/components/TraceCard";
+import { findTracesForLocation, PINS } from "@/lib/seed-data";
 import { getSongTheme } from "@/lib/song-themes";
 
+const locationSearchSchema = z.object({
+  // Inner tab: playlist (default) shows the song deck;
+  // story shows the place's trace stream.
+  tab: z.enum(["playlist", "story"]).optional(),
+});
+
 export const Route = createFileRoute("/location/$id")({
+  validateSearch: locationSearchSchema,
   loader: ({ params }) => {
     const pin = PINS.find((p) => p.id === params.id);
     if (!pin) throw notFound();
@@ -22,6 +31,8 @@ export const Route = createFileRoute("/location/$id")({
 
 function LocationScreen() {
   const { pin } = Route.useLoaderData();
+  const { tab = "playlist" } = Route.useSearch();
+  const isStory = tab === "story";
   // First song's theme drives the page color field.
   const firstSong = pin.songs[0];
   const theme = firstSong
@@ -37,13 +48,57 @@ function LocationScreen() {
 
   return (
     <PhoneShell backdropStyle={backdropStyle}>
-      {/* Top bar — back arrow only. STORY toggle removed along with the
-          /playing STORY face; this page is the place's playlist, full stop. */}
-      <div className="relative z-10 px-5 pt-3">
+      {/* Top bar — back arrow + PLAYLIST/STORY pill toggle. The pill keeps
+          the place as the anchor and switches the lens (curated songs vs
+          this place's trace stream). */}
+      <div className="relative z-10 px-5 pt-3 flex items-center justify-between">
         <Link to="/" className="h-9 w-9 grid place-items-center rounded-full bg-white/10 backdrop-blur">
           <ChevronDown className="h-4 w-4 text-white" />
         </Link>
+        <div className="inline-flex items-center gap-0.5 h-9 rounded-pill bg-black/30 backdrop-blur p-0.5">
+          <Link
+            to="/location/$id"
+            params={{ id: pin.id }}
+            search={{ tab: "playlist" as const }}
+            className={`inline-flex items-center h-8 px-3.5 rounded-pill font-extrabold uppercase tracking-[0.16em] text-[11px] transition-colors ${
+              !isStory ? "bg-white text-zinc-900" : "text-white/70 hover:text-white"
+            }`}
+          >
+            Playlist
+          </Link>
+          <Link
+            to="/location/$id"
+            params={{ id: pin.id }}
+            search={{ tab: "story" as const }}
+            className={`inline-flex items-center h-8 px-3.5 rounded-pill font-extrabold uppercase tracking-[0.16em] text-[11px] transition-colors ${
+              isStory ? "bg-white text-zinc-900" : "text-white/70 hover:text-white"
+            }`}
+          >
+            Story
+          </Link>
+        </div>
+        {/* Empty slot keeps the back arrow / pill centred. */}
+        <span className="h-9 w-9" />
       </div>
+
+      {isStory ? (
+        <StoryTab pin={pin} theme={theme} />
+      ) : (
+        <PlaylistTab pin={pin} theme={theme} />
+      )}
+    </PhoneShell>
+  );
+}
+
+function PlaylistTab({
+  pin,
+  theme,
+}: {
+  pin: (typeof PINS)[number];
+  theme: { tint: string; tintDeep: string; tintLight: string };
+}) {
+  return (
+    <>
 
       {/* Hero — 2×2 cover grid + place name + mood */}
       <div className="relative z-10 flex flex-col items-center px-6 pt-4 pb-5">
@@ -120,7 +175,80 @@ function LocationScreen() {
           })}
         </ul>
       </div>
+    </>
+  );
+}
 
-    </PhoneShell>
+function StoryTab({
+  pin,
+  theme,
+}: {
+  pin: (typeof PINS)[number];
+  theme: { tint: string; tintDeep: string; tintLight: string };
+}) {
+  const traces = findTracesForLocation(pin.id);
+  const count = traces.length;
+  return (
+    <div className="relative z-10 pb-24 min-h-full">
+      {/* Hero — location identity. Place name + mood + count drive the page. */}
+      <div className="flex flex-col items-center px-4 pt-2 pb-4 text-center">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/55">
+          The story of
+        </p>
+        <h1
+          className="font-pop mt-2 text-[34px] text-white"
+          style={{
+            fontWeight: 800,
+            lineHeight: 1.0,
+            letterSpacing: "-0.03em",
+          }}
+        >
+          {pin.label}
+        </h1>
+        <p className="mt-2 text-[12px] italic text-white/70 max-w-[18rem]">
+          {pin.mood}
+        </p>
+        <p
+          className="mt-3 text-[10px] font-semibold tracking-[0.18em] uppercase"
+          style={{ color: theme.tintLight }}
+        >
+          {count > 0 ? `${count} ${count === 1 ? "trace" : "traces"} here` : "no traces yet"}
+        </p>
+      </div>
+
+      {/* White-card stack of every trace at this location (heterogeneous songs). */}
+      {count > 0 ? (
+        <div className="flex flex-col gap-3 px-3">
+          {traces.map((t, i) => (
+            <TraceCard key={t.id} trace={t} index={i} />
+          ))}
+        </div>
+      ) : (
+        <div className="px-6 py-10 text-center">
+          <p className="italic text-[14px] text-white/70 leading-relaxed">
+            no one has written about this place yet.
+            <br />
+            you could be the first.
+          </p>
+        </div>
+      )}
+
+      {/* Sticky chunky CTA — sits above the bottom nav with breathing
+          room (the parent's pb-24 reserves space so the last trace card
+          isn't covered by the CTA). Tapping routes to /traces. */}
+      <div className="sticky bottom-4 mt-6 flex justify-center pointer-events-none">
+        <Link
+          to="/traces"
+          className="pointer-events-auto inline-flex items-center gap-2 rounded-pill px-6 py-3 text-[12px] font-extrabold uppercase tracking-[0.16em] text-white"
+          style={{
+            background: theme.tint,
+            boxShadow: `0 8px 24px -8px ${theme.tintDeep}`,
+          }}
+        >
+          <span aria-hidden>＋</span>
+          Leave a trace here
+        </Link>
+      </div>
+    </div>
   );
 }
