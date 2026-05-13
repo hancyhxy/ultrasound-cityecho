@@ -183,7 +183,9 @@
   }
   html, body {
     background-color: var(--color-background);
-    height: 100vh;
+    /* dvh follows the real visible viewport (excludes iOS home indicator
+       inset) so PhoneShell's fixed inset-0 stops bleeding through. */
+    height: 100dvh;
     overflow: hidden;
     overscroll-behavior: none;
     position: fixed;
