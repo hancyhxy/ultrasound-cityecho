@@ -3,6 +3,7 @@ import { ChevronUp, Search, SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { PhoneShell } from "@/components/PhoneShell";
+import { useStandaloneMode } from "@/hooks/useStandaloneMode";
 import { BottomCarousel } from "@/components/BottomCarousel";
 import { PINS } from "@/lib/seed-data";
 import { getSongTheme } from "@/lib/song-themes";
@@ -36,6 +37,7 @@ function MapScreen() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [carouselExpanded, setCarouselExpanded] = useState(true);
   const [heroCollapsed, setHeroCollapsed] = useState(false);
+  const standalone = useStandaloneMode();
 
   useEffect(() => {
     if (pin) setSelectedId(pin);
@@ -126,10 +128,18 @@ function MapScreen() {
           className="relative overflow-hidden rounded-b-[34px] border-b border-white/10 px-5 pt-2 pb-5 shadow-[0_24px_60px_rgba(0,0,0,0.34)] backdrop-blur-2xl"
           style={{ background: HERO_SURFACE }}
         >
-          <div className="mb-3 flex items-center justify-between px-1 text-[11px] font-mono text-white/48">
-            <span>9:41</span>
-            <span>100%</span>
-          </div>
+          {!standalone && (
+            <div className="mb-3 flex items-center justify-between px-1 text-[11px] font-mono text-white/48">
+              <span>9:41</span>
+              <span>100%</span>
+            </div>
+          )}
+          {standalone && (
+            <div
+              aria-hidden
+              style={{ height: "env(safe-area-inset-top)" }}
+            />
+          )}
           <div
             className={`overflow-hidden transition-all duration-300 ease-out ${
               heroCollapsed ? "max-h-0 opacity-0 -mb-1" : "max-h-32 opacity-100 mb-4"
