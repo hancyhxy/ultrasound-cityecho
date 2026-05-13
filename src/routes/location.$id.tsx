@@ -189,7 +189,7 @@ function StoryTab({
   const traces = findTracesForLocation(pin.id);
   const count = traces.length;
   return (
-    <div className="relative z-10 pb-24 min-h-full">
+    <div className="relative z-10 pb-32 min-h-full">
       {/* Hero — location identity. Place name + mood + count drive the page. */}
       <div className="flex flex-col items-center px-4 pt-2 pb-4 text-center">
         <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/55">
@@ -234,9 +234,12 @@ function StoryTab({
       )}
 
       {/* Sticky chunky CTA — sits above the bottom nav with breathing
-          room (the parent's pb-24 reserves space so the last trace card
+          room (the parent's pb-32 reserves space so the last trace card
           isn't covered by the CTA). Tapping routes to /traces. */}
-      <div className="sticky bottom-4 mt-6 flex justify-center pointer-events-none">
+      <div
+        className="sticky mt-6 flex justify-center pointer-events-none"
+        style={{ bottom: "calc(var(--nav-height) + 8px)" }}
+      >
         <Link
           to="/traces"
           className="pointer-events-auto inline-flex items-center gap-2 rounded-pill px-6 py-3 text-[12px] font-extrabold uppercase tracking-[0.16em] text-white"

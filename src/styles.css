@@ -99,6 +99,10 @@
   --radius-card-xl: 2rem;
   --radius-portrait: 2.5rem;
 
+  /* Bottom nav height in standalone PWA — consumed by BottomCarousel and
+     sticky CTAs so they clear the nav. Single source of truth. */
+  --nav-height: 64px;
+
   /* Base — plum-black (was midnight-indigo) */
   --background: oklch(0.13 0.04 295);
   --foreground: oklch(0.97 0.005 290);

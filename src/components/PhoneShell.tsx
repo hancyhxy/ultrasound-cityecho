@@ -75,7 +75,8 @@ export function PhoneShell({
           {children}
         </main>
         <nav
-          className="absolute inset-x-0 bottom-0 px-6 pt-2 pb-1 flex items-center justify-between"
+          className="absolute inset-x-0 bottom-0 px-6 pt-3 pb-1 z-50 flex items-center justify-between bg-background"
+          style={{ height: "var(--nav-height)" }}
         >
           {navItems}
         </nav>

@@ -74,7 +74,10 @@ export function BottomCarousel({
   };
 
   return (
-    <div className="absolute inset-x-0 bottom-0 z-20 pointer-events-none">
+    <div
+      className="absolute inset-x-0 z-20 pointer-events-none"
+      style={{ bottom: "var(--nav-height)" }}
+    >
       {/* The whole carousel slides between expanded and collapsed via
           translate-y. Collapsed leaves only the chevron handle visible. */}
       <div
