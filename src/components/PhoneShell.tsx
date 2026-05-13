@@ -63,11 +63,11 @@ export function PhoneShell({
   if (standalone) {
     return (
       <div
-        className="fixed inset-0 flex flex-col overflow-hidden"
+        className="fixed inset-0 overflow-hidden"
         style={{ background: "#0a0410", ...backdropStyle }}
       >
         <main
-          className={`flex-1 relative scrollbar-none ${
+          className={`absolute inset-0 scrollbar-none ${
             scrollable ? "overflow-y-auto" : "overflow-hidden"
           }`}
           style={{ paddingTop: "env(safe-area-inset-top)" }}
@@ -75,8 +75,8 @@ export function PhoneShell({
           {children}
         </main>
         <nav
-          className="px-6 pt-3 flex items-center justify-between flex-shrink-0"
-          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+          className="absolute inset-x-0 bottom-0 px-6 pt-2 pb-2 flex items-center justify-between"
+          style={{ paddingBottom: "max(env(safe-area-inset-bottom), 8px)" }}
         >
           {navItems}
         </nav>
