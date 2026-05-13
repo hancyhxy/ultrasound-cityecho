@@ -76,7 +76,7 @@ export function PhoneShell({
         </main>
         <nav
           className="px-6 pt-3 flex items-center justify-between flex-shrink-0"
-          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 12px)" }}
+          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
           {navItems}
         </nav>
