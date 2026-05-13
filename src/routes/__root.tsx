@@ -28,10 +28,19 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      {
+        name: "viewport",
+        content:
+          "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover",
+      },
       { title: "Ultrasound — the city, listening with you" },
       { name: "description", content: "Ambient, location-based music for newcomers. Hear what people here are listening to." },
       { name: "author", content: "Ultrasound" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Ultrasound" },
+      { name: "theme-color", content: "#0a0410" },
       { property: "og:title", content: "Ultrasound — the city, listening with you" },
       { property: "og:description", content: "Ambient, location-based music for newcomers. Hear what people here are listening to." },
       { property: "og:type", content: "website" },
@@ -44,6 +53,9 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/ultrasound-cityecho/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/ultrasound-cityecho/city-echo.png" },
+      { rel: "icon", href: "/ultrasound-cityecho/city-echo.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "preconnect", href: "https://api.fontshare.com" },

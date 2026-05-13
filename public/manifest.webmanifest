@@ -1,0 +1,19 @@
+{
+  "name": "Ultrasound — CityEcho",
+  "short_name": "Ultrasound",
+  "description": "Ambient, location-based music for newcomers. Hear what people here are listening to.",
+  "start_url": "/ultrasound-cityecho/",
+  "scope": "/ultrasound-cityecho/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0410",
+  "theme_color": "#0a0410",
+  "icons": [
+    {
+      "src": "/ultrasound-cityecho/city-echo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

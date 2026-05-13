@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { House, LayoutGrid, Library, User } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
+import { useStandaloneMode } from "@/hooks/useStandaloneMode";
 
 const NAV = [
   { to: "/", label: "Map", icon: House },
@@ -25,7 +26,66 @@ export function PhoneShell({
   showStatusBar?: boolean;
 }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const standalone = useStandaloneMode();
 
+  const navItems = (
+    <>
+      {NAV.map(({ to, label, icon: Icon }) => {
+        const active = to === "/" ? path === "/" : path.startsWith(to);
+        return (
+          <Link
+            key={to}
+            to={to}
+            aria-label={label}
+            className="relative flex flex-col items-center justify-center w-12 h-9 group"
+          >
+            <Icon
+              className={`h-[22px] w-[22px] transition-colors ${
+                active ? "text-white" : "text-white/45 group-hover:text-white/70"
+              }`}
+              strokeWidth={active ? 2.4 : 1.9}
+              fill={active ? "currentColor" : "none"}
+            />
+            <span
+              className={`absolute -bottom-0.5 h-[2px] rounded-full bg-white transition-all ${
+                active ? "w-4 opacity-100" : "w-0 opacity-0"
+              }`}
+            />
+          </Link>
+        );
+      })}
+    </>
+  );
+
+  // PWA standalone: fill the real device viewport edge-to-edge. No fake phone
+  // chassis, no fake 9:41 status bar (the OS draws a real one over the top
+  // safe-area thanks to status-bar-style=black-translucent).
+  if (standalone) {
+    return (
+      <div
+        className="fixed inset-0 flex flex-col overflow-hidden"
+        style={{ background: "#0a0410", ...backdropStyle }}
+      >
+        <main
+          className={`flex-1 relative scrollbar-none ${
+            scrollable ? "overflow-y-auto" : "overflow-hidden"
+          }`}
+          style={{ paddingTop: "env(safe-area-inset-top)" }}
+        >
+          {children}
+        </main>
+        <nav
+          className="px-6 pt-3 flex items-center justify-between flex-shrink-0"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 12px)" }}
+        >
+          {navItems}
+        </nav>
+      </div>
+    );
+  }
+
+  // Browser preview mode: render the phone chassis frame so designers can
+  // showcase the prototype on desktop / inside Safari without "add to home".
   return (
     <div className="h-screen w-full overflow-hidden flex items-center justify-center px-4">
       {/* Phone frame — inflow inside an h-screen overflow-hidden parent, so
@@ -62,30 +122,7 @@ export function PhoneShell({
           {/* bottom nav — sits on the black chassis below the main card,
               with a sliver of black peeking between them */}
           <nav className="px-6 pt-3 pb-5 flex items-center justify-between">
-            {NAV.map(({ to, label, icon: Icon }) => {
-              const active = to === "/" ? path === "/" : path.startsWith(to);
-              return (
-                <Link
-                  key={to}
-                  to={to}
-                  aria-label={label}
-                  className="relative flex flex-col items-center justify-center w-12 h-9 group"
-                >
-                  <Icon
-                    className={`h-[22px] w-[22px] transition-colors ${
-                      active ? "text-white" : "text-white/45 group-hover:text-white/70"
-                    }`}
-                    strokeWidth={active ? 2.4 : 1.9}
-                    fill={active ? "currentColor" : "none"}
-                  />
-                  <span
-                    className={`absolute -bottom-0.5 h-[2px] rounded-full bg-white transition-all ${
-                      active ? "w-4 opacity-100" : "w-0 opacity-0"
-                    }`}
-                  />
-                </Link>
-              );
-            })}
+            {navItems}
           </nav>
         </div>
 
