@@ -99,9 +99,14 @@
   --radius-card-xl: 2rem;
   --radius-portrait: 2.5rem;
 
-  /* Bottom nav height in standalone PWA — consumed by BottomCarousel and
-     sticky CTAs so they clear the nav. Single source of truth. */
-  --nav-height: 64px;
+  /* Bottom nav sizing in standalone PWA. Single source of truth.
+     --nav-bar-height is the visual bar height (icon row only).
+     --nav-height adds the iOS home-indicator safe area so BottomCarousel
+     and sticky CTAs clear BOTH the bar and the system gesture bar. On
+     devices without a home indicator env() resolves to 0, so this
+     collapses back to the bare bar height automatically. */
+  --nav-bar-height: 56px;
+  --nav-height: calc(var(--nav-bar-height) + env(safe-area-inset-bottom));
 
   /* Base — plum-black (was midnight-indigo) */
   --background: oklch(0.13 0.04 295);
