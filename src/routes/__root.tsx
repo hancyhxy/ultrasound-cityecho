@@ -54,8 +54,8 @@ export const Route = createRootRoute({
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/ultrasound-cityecho/manifest.webmanifest" },
-      { rel: "apple-touch-icon", href: "/ultrasound-cityecho/cityecho-icon.png" },
-      { rel: "icon", href: "/ultrasound-cityecho/cityecho-icon.png" },
+      { rel: "apple-touch-icon", href: "/ultrasound-cityecho/cityecho-icon-v2.png" },
+      { rel: "icon", href: "/ultrasound-cityecho/cityecho-icon-v2.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "preconnect", href: "https://api.fontshare.com" },
